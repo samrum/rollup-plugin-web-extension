@@ -11,7 +11,8 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "lint": "prettier --write .",
-    "test": "jest",
+    "test": "pnpm test:unit && pnpm test:ts",
+    "test:unit": "jest",
     "test:ts": "tsc --noEmit"
   },
   "files": [
