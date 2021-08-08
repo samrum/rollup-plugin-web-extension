@@ -2,7 +2,7 @@ import typescript from "@rollup/plugin-typescript";
 
 import pkg from "./package.json";
 
-const external = Object.keys(pkg.dependencies).concat(["path", "fs"]);
+const external = ["path", "fs"].concat(Object.keys(pkg.dependencies ?? {}));
 
 export default {
   input: "src/index.ts",
