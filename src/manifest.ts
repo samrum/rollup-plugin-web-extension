@@ -77,26 +77,20 @@ function parseManifestHtmlFile(htmlFileName: string): {
   const emitFiles: EmittedFile[] = [];
   let html = fs.readFileSync(htmlFileName, "utf-8");
 
-  const matches = html.match(/<script[^>]*src="(.*)"[^>]*>/ig);
-  if (!matches) {
-    return {
-      inputScripts,
-      emitFiles,
-    };
-  }
+  const scriptRegExp = new RegExp('<script[^>]*src="(.*)"[^>]*>','gi');
+  let match;
 
-  for (const match of matches) {
-    const [originalScript, scriptFileName] = match.match(/<script[^>]*src="(.*)"[^>]*>/i) ?? [];
-
-    if (!scriptFileName) {
-      continue;
-    }
+  while((match = scriptRegExp.exec(html)) !== null) {
+    const [originalScript, scriptFileName] = match;
 
     const inputDirectory = htmlFileName.split("/").slice(0, -1).join("/");
     const outputFile = `${scriptFileName.split(".")[0]}`;
     const outputFileName = `${inputDirectory}/${outputFile}`;
 
-    let updatedScript = originalScript.replace(`src="${scriptFileName}"`, `src="${outputFile}.js"`);
+    let updatedScript = originalScript.replace(
+      `src="${scriptFileName}"`,
+      `src="${outputFile}.js"`
+    );
     if (!updatedScript.includes('type="module"')) {
       updatedScript = `${updatedScript.slice(0, -1)} type="module">`;
     }
