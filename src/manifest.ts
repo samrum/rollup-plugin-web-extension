@@ -77,10 +77,10 @@ function parseManifestHtmlFile(htmlFileName: string): {
   const emitFiles: EmittedFile[] = [];
   let html = fs.readFileSync(htmlFileName, "utf-8");
 
-  const scriptRegExp = new RegExp('<script[^>]*src="(.*)"[^>]*>','gi');
+  const scriptRegExp = new RegExp('<script[^>]*src="(.*)"[^>]*>', "gi");
   let match;
 
-  while((match = scriptRegExp.exec(html)) !== null) {
+  while ((match = scriptRegExp.exec(html)) !== null) {
     const [originalScript, scriptFileName] = match;
 
     const inputDirectory = htmlFileName.split("/").slice(0, -1).join("/");
@@ -170,7 +170,7 @@ export function addDynamicImportsToManifestContentScripts(
   };
 }
 
-function isOutputChunk(
+export function isOutputChunk(
   bundleFile: OutputAsset | OutputChunk
 ): bundleFile is OutputChunk {
   return "imports" in bundleFile;
