@@ -124,6 +124,11 @@ export function addDynamicImportsToManifestContentScripts(
     manifest.web_accessible_resources ?? []
   );
 
+  if (isInWatchMode) {
+    // allow web-ext manifest reloading to work with rebuilt assets during watch
+    webAccessibleResources.add("assets/*");
+  }
+
   manifest.content_scripts?.forEach((script) => {
     script.js?.forEach((scriptFileName, index) => {
       const bundleFile = bundle[scriptFileName];
@@ -157,11 +162,6 @@ export function addDynamicImportsToManifestContentScripts(
   });
 
   if (webAccessibleResources.size > 0) {
-    if (isInWatchMode) {
-      // allow web-ext manifest reloading to work with rebuilt assets during watch
-      webAccessibleResources.add("assets/*");
-    }
-
     manifest.web_accessible_resources = Array.from(webAccessibleResources);
   }
 
