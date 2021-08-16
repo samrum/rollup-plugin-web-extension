@@ -84,8 +84,8 @@ async function validateFixture(
     }
   });
 
-  expect(Object.keys(chunkCode).length).toEqual(0);
-  expect(Object.keys(assetCode).length).toEqual(0);
+  expect(Object.keys(chunkCode)).toEqual([]);
+  expect(Object.keys(assetCode)).toEqual([]);
 }
 
 async function validateTypescriptFixture(fixture): Promise<void> {
