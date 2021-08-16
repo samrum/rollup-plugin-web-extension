@@ -11,7 +11,7 @@ import * as TYPESCRIPT_CONTENT_WITH_NO_IMPORTS from "./fixture/index/typescript/
 
 function getManifest(
   testProperties: Partial<WebExtensionManifest> = {},
-  asJson = false,
+  asJson = false
 ): WebExtensionManifest | string {
   const manifest = {
     version: "2.0.0",
@@ -22,7 +22,7 @@ function getManifest(
   };
 
   if (asJson) {
-    return JSON.stringify(manifest, null, 2)
+    return JSON.stringify(manifest, null, 2);
   }
 
   return manifest;
@@ -81,29 +81,27 @@ async function validateTypescriptFixture(fixture): Promise<void> {
 
 describe("Rollup Plugin Web Extension", () => {
   describe("Content Scripts", () => {
-    describe('JavaScript', () => {
+    describe("JavaScript", () => {
       it("Outputs manifest files with no imports", async () => {
         await validateFixture(JAVASCRIPT_CONTENT_WITH_NO_IMPORTS);
       });
-  
+
       it("Outputs manifest files with unchunked import", async () => {
         await validateFixture(JAVASCRIPT_CONTENT_WITH_UNCHUNKED_IMPORT);
       });
-  
+
       it("Outputs manifest files with chunked import", async () => {
         await validateFixture(JAVASCRIPT_CONTENT_WITH_CHUNKED_IMPORT);
       });
-  
+
       it("Outputs manifest files with chunked dynamic import", async () => {
         await validateFixture(JAVASCRIPT_CONTENT_WITH_DYNAMIC_IMPORT);
       });
     });
 
-    describe('TypeScript', () => {
+    describe("TypeScript", () => {
       it("Outputs manifest files with no imports", async () => {
-        await validateTypescriptFixture(
-          TYPESCRIPT_CONTENT_WITH_NO_IMPORTS
-        );
+        await validateTypescriptFixture(TYPESCRIPT_CONTENT_WITH_NO_IMPORTS);
       });
     });
   });

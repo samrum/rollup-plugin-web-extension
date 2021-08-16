@@ -1,11 +1,15 @@
 export const inputManifest = {
   content_scripts: [
     {
-      js: ["test/fixture/index/javascript/contentWithChunkedImport/content1.js"],
+      js: [
+        "test/fixture/index/javascript/contentWithChunkedImport/content1.js",
+      ],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      js: ["test/fixture/index/javascript/contentWithChunkedImport/content2.js"],
+      js: [
+        "test/fixture/index/javascript/contentWithChunkedImport/content2.js",
+      ],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -14,11 +18,15 @@ export const inputManifest = {
 export const expectedManifest = {
   content_scripts: [
     {
-      js: ["loader/test/fixture/index/javascript/contentWithChunkedImport/content1.js"],
+      js: [
+        "loader/test/fixture/index/javascript/contentWithChunkedImport/content1.js",
+      ],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      js: ["loader/test/fixture/index/javascript/contentWithChunkedImport/content2.js"],
+      js: [
+        "loader/test/fixture/index/javascript/contentWithChunkedImport/content2.js",
+      ],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
