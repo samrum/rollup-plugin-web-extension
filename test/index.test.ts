@@ -1,10 +1,19 @@
 import { rollup } from "rollup";
-import typescript from "@rollup/plugin-typescript";
+import sucrase from '@rollup/plugin-sucrase';
 import webExtension from "./../src/index";
 import { isOutputChunk } from "./../src/manifest";
+import {
+  chunkCodeContentWithChunkedDynamicImport,
+  chunkCodeContentWithChunkedDynamicImport2,
+  chunkCodeContentWithChunkedImport,
+  chunkCodeContentWithChunkedImport2,
+  chunkCodeContentWithImport,
+  chunkCodeImportable,
+  chunkCodeImportableDynamic,
+} from "./fixture/basic/outputChunkCode";
 
 describe("Rollup Plugin Web Extension", () => {
-  describe("Content Scripts", () => {
+  describe("Content Scripts - JavaScript", () => {
     it("Outputs manifest files with no imports", async () => {
       const manifest = {
         version: "2.0.0",
@@ -74,12 +83,7 @@ describe("Rollup Plugin Web Extension", () => {
       const { output } = await bundle.generate({});
 
       const chunkCode = {
-        "test/fixture/basic/contentWithImport.js": `function importable() {
-  console.log("importable");
-}
-
-importable();
-console.log("content");\n`,
+        "test/fixture/basic/contentWithImport.js": chunkCodeContentWithImport,
       };
       const assetCode = {
         "manifest.json": JSON.stringify(outputManifest, null, 2),
@@ -102,11 +106,11 @@ console.log("content");\n`,
         manifest_version: 2,
         content_scripts: [
           {
-            js: ["test/fixture/basic/contentWithImport.js"],
+            js: ["test/fixture/basic/contentWithChunkedImport.js"],
             matches: ["https://*/*", "http://*/*"],
           },
           {
-            js: ["test/fixture/basic/contentWithImport2.js"],
+            js: ["test/fixture/basic/contentWithChunkedImport2.js"],
             matches: ["https://*/*", "http://*/*"],
           },
         ],
@@ -116,18 +120,18 @@ console.log("content");\n`,
         ...manifest,
         content_scripts: [
           {
-            js: ["loader/test/fixture/basic/contentWithImport.js"],
+            js: ["loader/test/fixture/basic/contentWithChunkedImport.js"],
             matches: ["https://*/*", "http://*/*"],
           },
           {
-            js: ["loader/test/fixture/basic/contentWithImport2.js"],
+            js: ["loader/test/fixture/basic/contentWithChunkedImport2.js"],
             matches: ["https://*/*", "http://*/*"],
           },
         ],
         web_accessible_resources: [
-          "test/fixture/basic/contentWithImport.js",
+          "test/fixture/basic/contentWithChunkedImport.js",
           "importable-c4117e7c.js",
-          "test/fixture/basic/contentWithImport2.js",
+          "test/fixture/basic/contentWithChunkedImport2.js",
         ],
       };
 
@@ -142,24 +146,16 @@ console.log("content");\n`,
       const { output } = await bundle.generate({});
 
       const chunkCode = {
-        "test/fixture/basic/contentWithImport.js": `import { i as importable } from '../../../importable-c4117e7c.js';
-
-importable();
-console.log("content");\n`,
-        "test/fixture/basic/contentWithImport2.js": `import { i as importable } from '../../../importable-c4117e7c.js';
-
-importable();
-console.log("content2");\n`,
-        "importable-c4117e7c.js": `function importable() {
-  console.log("importable");
-}
-
-export { importable as i };\n`,
+        "test/fixture/basic/contentWithChunkedImport.js":
+          chunkCodeContentWithChunkedImport,
+        "test/fixture/basic/contentWithChunkedImport2.js":
+          chunkCodeContentWithChunkedImport2,
+        "importable-c4117e7c.js": chunkCodeImportable,
       };
       const assetCode = {
         "manifest.json": JSON.stringify(outputManifest, null, 2),
-        "loader/test/fixture/basic/contentWithImport.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/basic/contentWithImport.js"))})();`,
-        "loader/test/fixture/basic/contentWithImport2.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/basic/contentWithImport2.js"))})();`,
+        "loader/test/fixture/basic/contentWithChunkedImport.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/basic/contentWithChunkedImport.js"))})();`,
+        "loader/test/fixture/basic/contentWithChunkedImport2.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/basic/contentWithChunkedImport2.js"))})();`,
       };
 
       output.forEach((file) => {
@@ -219,25 +215,11 @@ export { importable as i };\n`,
       const { output } = await bundle.generate({});
 
       const chunkCode = {
-        "test/fixture/basic/contentWithDynamicImport.js": `(async () => {
-  const importable = await import('../../../importable-5243f143.js');
-
-  importable();
-
-  console.log("content");
-})();\n`,
-        "test/fixture/basic/contentWithDynamicImport2.js": `(async () => {
-  const importable = await import('../../../importable-5243f143.js');
-
-  importable();
-
-  console.log("content2");
-})();\n`,
-        "importable-5243f143.js": `function importable() {
-  console.log("importable");
-}
-
-export { importable as default };\n`,
+        "test/fixture/basic/contentWithDynamicImport.js":
+          chunkCodeContentWithChunkedDynamicImport,
+        "test/fixture/basic/contentWithDynamicImport2.js":
+          chunkCodeContentWithChunkedDynamicImport2,
+        "importable-5243f143.js": chunkCodeImportableDynamic,
       };
       const assetCode = {
         "manifest.json": JSON.stringify(outputManifest, null, 2),
@@ -255,7 +237,7 @@ export { importable as default };\n`,
     });
   });
 
-  describe("Typescript", () => {
+  describe("Content Scripts - Typescript", () => {
     it("Transforms and outputs manifest files with no imports", async () => {
       const manifest = {
         version: "2.0.0",
@@ -282,7 +264,10 @@ export { importable as default };\n`,
 
       const bundle = await rollup({
         plugins: [
-          typescript({ sourceMap: false }),
+          sucrase({
+            exclude: ['node_modules/**'],
+            transforms: ['typescript']
+          }),
           webExtension({
             manifest,
           }),
