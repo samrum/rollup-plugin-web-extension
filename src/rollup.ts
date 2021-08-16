@@ -1,4 +1,4 @@
-import type { RollupOptions } from "rollup";
+import type { RollupOptions, OutputAsset, OutputChunk } from "rollup";
 
 export function getOptionsInputAsObject(input: RollupOptions["input"]): {
   [entryAlias: string]: string;
@@ -36,4 +36,10 @@ export function addInputScriptsToOptionsInput(
   );
 
   return optionsInput;
+}
+
+export function isOutputChunk(
+  bundleFile: OutputAsset | OutputChunk
+): bundleFile is OutputChunk {
+  return "imports" in bundleFile;
 }

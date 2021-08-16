@@ -1,11 +1,7 @@
 import fs from "fs";
-import type {
-  OutputBundle,
-  OutputAsset,
-  OutputChunk,
-  EmittedFile,
-} from "rollup";
+import type { OutputBundle, EmittedFile } from "rollup";
 import { WebExtensionManifest } from "../types";
+import { isOutputChunk } from "./rollup";
 
 export function parseManifestContentScripts(manifest: WebExtensionManifest): {
   inputScripts: [string, string][];
@@ -168,10 +164,4 @@ export function addDynamicImportsToManifestContentScripts(
   return {
     emitFiles,
   };
-}
-
-export function isOutputChunk(
-  bundleFile: OutputAsset | OutputChunk
-): bundleFile is OutputChunk {
-  return "imports" in bundleFile;
 }

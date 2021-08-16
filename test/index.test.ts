@@ -1,7 +1,7 @@
 import { rollup, RollupOutput, RollupOptions } from "rollup";
 import sucrase from "@rollup/plugin-sucrase";
 import webExtension from "./../src/index";
-import { isOutputChunk } from "./../src/manifest";
+import { isOutputChunk } from "./../src/rollup";
 import type { WebExtensionManifest } from "./../types/index";
 import * as JAVASCRIPT_CONTENT_WITH_DYNAMIC_IMPORT from "./fixture/index/javascript/contentWithDynamicImport";
 import * as JAVASCRIPT_CONTENT_WITH_CHUNKED_IMPORT from "./fixture/index/javascript/contentWithChunkedImport";
