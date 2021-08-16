@@ -9,11 +9,10 @@
   },
   "scripts": {
     "build": "rollup -c",
+    "check": "tsc --noEmit",
     "dev": "rollup -c -w",
     "lint": "prettier --write .",
-    "test": "pnpm test:unit && pnpm test:ts",
-    "test:unit": "jest",
-    "test:ts": "tsc --noEmit"
+    "test": "jest"
   },
   "files": [
     "dist",
