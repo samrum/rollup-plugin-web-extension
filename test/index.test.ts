@@ -1,4 +1,5 @@
-import { rollup, RollupOutput, RollupOptions } from "rollup";
+import { rollup } from "rollup";
+import type { RollupOutput, RollupOptions } from "rollup";
 import sucrase from "@rollup/plugin-sucrase";
 import webExtension from "./../src/index";
 import { isOutputChunk } from "./../src/rollup";
@@ -46,7 +47,17 @@ async function rollupGenerate(
 }
 
 async function validateFixture(
-  { inputManifest, expectedManifest, assetCode, chunkCode },
+  {
+    inputManifest,
+    expectedManifest,
+    assetCode = {},
+    chunkCode = {},
+  }: {
+    inputManifest: Partial<WebExtensionManifest>;
+    expectedManifest: Partial<WebExtensionManifest>;
+    assetCode?: { [entryAlias: string]: string };
+    chunkCode?: { [entryAlias: string]: string };
+  },
   rollupConfig: Partial<RollupOptions> = {}
 ): Promise<void> {
   const { output } = await rollupGenerate(
@@ -55,17 +66,26 @@ async function validateFixture(
   );
 
   assetCode = {
-    "manifest.json": getManifest(expectedManifest, true),
+    "manifest.json": getManifest(expectedManifest, true) as string,
     ...assetCode,
   };
+
+  expect(output.length).toEqual(
+    Object.keys(chunkCode).length + Object.keys(assetCode).length
+  );
 
   output.forEach((file) => {
     if (isOutputChunk(file)) {
       expect(file.code).toEqual(chunkCode[file.fileName]);
+      delete chunkCode[file.fileName];
     } else {
       expect(file.source).toEqual(assetCode[file.fileName]);
+      delete assetCode[file.fileName];
     }
   });
+
+  expect(Object.keys(chunkCode).length).toEqual(0);
+  expect(Object.keys(assetCode).length).toEqual(0);
 }
 
 async function validateTypescriptFixture(fixture): Promise<void> {
