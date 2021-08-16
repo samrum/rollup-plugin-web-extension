@@ -1,5 +1,5 @@
 (async () => {
-  const importable = await import("./importable");
+  const importable = await import("./../shared/importable");
 
   importable();
 

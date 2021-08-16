@@ -1,294 +1,109 @@
-import { rollup } from "rollup";
-import sucrase from '@rollup/plugin-sucrase';
+import { rollup, RollupOutput, RollupOptions } from "rollup";
+import sucrase from "@rollup/plugin-sucrase";
 import webExtension from "./../src/index";
 import { isOutputChunk } from "./../src/manifest";
-import {
-  chunkCodeContentWithChunkedDynamicImport,
-  chunkCodeContentWithChunkedDynamicImport2,
-  chunkCodeContentWithChunkedImport,
-  chunkCodeContentWithChunkedImport2,
-  chunkCodeContentWithImport,
-  chunkCodeImportable,
-  chunkCodeImportableDynamic,
-} from "./fixture/basic/outputChunkCode";
+import type { WebExtensionManifest } from "./../types/index";
+import * as JAVASCRIPT_CONTENT_WITH_DYNAMIC_IMPORT from "./fixture/index/javascript/contentWithDynamicImport";
+import * as JAVASCRIPT_CONTENT_WITH_CHUNKED_IMPORT from "./fixture/index/javascript/contentWithChunkedImport";
+import * as JAVASCRIPT_CONTENT_WITH_UNCHUNKED_IMPORT from "./fixture/index/javascript/contentWithUnchunkedImport";
+import * as JAVASCRIPT_CONTENT_WITH_NO_IMPORTS from "./fixture/index/javascript/contentWithNoImports";
+import * as TYPESCRIPT_CONTENT_WITH_NO_IMPORTS from "./fixture/index/typescript/contentWithNoImports";
 
-describe("Rollup Plugin Web Extension", () => {
-  describe("Content Scripts - JavaScript", () => {
-    it("Outputs manifest files with no imports", async () => {
-      const manifest = {
-        version: "2.0.0",
-        name: "Manifest Name",
-        description: "Manifest Description",
-        manifest_version: 2,
-        content_scripts: [
-          {
-            js: ["test/fixture/basic/content.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-        ],
-      };
+function getManifest(
+  testProperties: Partial<WebExtensionManifest> = {},
+  asJson = false,
+): WebExtensionManifest | string {
+  const manifest = {
+    version: "2.0.0",
+    name: "Manifest Name",
+    description: "Manifest Description",
+    manifest_version: 2,
+    ...testProperties,
+  };
 
-      const outputManifest = JSON.parse(JSON.stringify(manifest));
+  if (asJson) {
+    return JSON.stringify(manifest, null, 2)
+  }
 
-      const bundle = await rollup({
-        plugins: [
-          webExtension({
-            manifest,
-          }),
-        ],
-      });
+  return manifest;
+}
 
-      const { output } = await bundle.generate({});
-
-      const chunkCode = {
-        "test/fixture/basic/content.js": `console.log("content");\n`,
-      };
-      const assetCode = {
-        "manifest.json": JSON.stringify(outputManifest, null, 2),
-      };
-
-      output.forEach((file) => {
-        if (isOutputChunk(file)) {
-          expect(file.code).toEqual(chunkCode[file.fileName]);
-        } else {
-          expect(file.source).toEqual(assetCode[file.fileName]);
-        }
-      });
-    });
-
-    it("Outputs manifest files with unchunked import", async () => {
-      const manifest = {
-        version: "2.0.0",
-        name: "Manifest Name",
-        description: "Manifest Description",
-        manifest_version: 2,
-        content_scripts: [
-          {
-            js: ["test/fixture/basic/contentWithImport.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-        ],
-      };
-
-      const outputManifest = JSON.parse(JSON.stringify(manifest));
-
-      const bundle = await rollup({
-        plugins: [
-          webExtension({
-            manifest,
-          }),
-        ],
-      });
-
-      const { output } = await bundle.generate({});
-
-      const chunkCode = {
-        "test/fixture/basic/contentWithImport.js": chunkCodeContentWithImport,
-      };
-      const assetCode = {
-        "manifest.json": JSON.stringify(outputManifest, null, 2),
-      };
-
-      output.forEach((file) => {
-        if (isOutputChunk(file)) {
-          expect(file.code).toEqual(chunkCode[file.fileName]);
-        } else {
-          expect(file.source).toEqual(assetCode[file.fileName]);
-        }
-      });
-    });
-
-    it("Outputs manifest files with chunked import", async () => {
-      const manifest = {
-        version: "2.0.0",
-        name: "Manifest Name",
-        description: "Manifest Description",
-        manifest_version: 2,
-        content_scripts: [
-          {
-            js: ["test/fixture/basic/contentWithChunkedImport.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-          {
-            js: ["test/fixture/basic/contentWithChunkedImport2.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-        ],
-      };
-
-      const outputManifest = {
-        ...manifest,
-        content_scripts: [
-          {
-            js: ["loader/test/fixture/basic/contentWithChunkedImport.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-          {
-            js: ["loader/test/fixture/basic/contentWithChunkedImport2.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-        ],
-        web_accessible_resources: [
-          "test/fixture/basic/contentWithChunkedImport.js",
-          "importable-c4117e7c.js",
-          "test/fixture/basic/contentWithChunkedImport2.js",
-        ],
-      };
-
-      const bundle = await rollup({
-        plugins: [
-          webExtension({
-            manifest,
-          }),
-        ],
-      });
-
-      const { output } = await bundle.generate({});
-
-      const chunkCode = {
-        "test/fixture/basic/contentWithChunkedImport.js":
-          chunkCodeContentWithChunkedImport,
-        "test/fixture/basic/contentWithChunkedImport2.js":
-          chunkCodeContentWithChunkedImport2,
-        "importable-c4117e7c.js": chunkCodeImportable,
-      };
-      const assetCode = {
-        "manifest.json": JSON.stringify(outputManifest, null, 2),
-        "loader/test/fixture/basic/contentWithChunkedImport.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/basic/contentWithChunkedImport.js"))})();`,
-        "loader/test/fixture/basic/contentWithChunkedImport2.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/basic/contentWithChunkedImport2.js"))})();`,
-      };
-
-      output.forEach((file) => {
-        if (isOutputChunk(file)) {
-          expect(file.code).toEqual(chunkCode[file.fileName]);
-        } else {
-          expect(file.source).toEqual(assetCode[file.fileName]);
-        }
-      });
-    });
-
-    it("Outputs manifest files with chunked dynamic import", async () => {
-      const manifest = {
-        version: "2.0.0",
-        name: "Manifest Name",
-        description: "Manifest Description",
-        manifest_version: 2,
-        content_scripts: [
-          {
-            js: ["test/fixture/basic/contentWithDynamicImport.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-          {
-            js: ["test/fixture/basic/contentWithDynamicImport2.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-        ],
-      };
-
-      const outputManifest = {
-        ...manifest,
-        content_scripts: [
-          {
-            js: ["loader/test/fixture/basic/contentWithDynamicImport.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-          {
-            js: ["loader/test/fixture/basic/contentWithDynamicImport2.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-        ],
-        web_accessible_resources: [
-          "test/fixture/basic/contentWithDynamicImport.js",
-          "importable-5243f143.js",
-          "test/fixture/basic/contentWithDynamicImport2.js",
-        ],
-      };
-
-      const bundle = await rollup({
-        plugins: [
-          webExtension({
-            manifest,
-          }),
-        ],
-      });
-
-      const { output } = await bundle.generate({});
-
-      const chunkCode = {
-        "test/fixture/basic/contentWithDynamicImport.js":
-          chunkCodeContentWithChunkedDynamicImport,
-        "test/fixture/basic/contentWithDynamicImport2.js":
-          chunkCodeContentWithChunkedDynamicImport2,
-        "importable-5243f143.js": chunkCodeImportableDynamic,
-      };
-      const assetCode = {
-        "manifest.json": JSON.stringify(outputManifest, null, 2),
-        "loader/test/fixture/basic/contentWithDynamicImport.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/basic/contentWithDynamicImport.js"))})();`,
-        "loader/test/fixture/basic/contentWithDynamicImport2.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/basic/contentWithDynamicImport2.js"))})();`,
-      };
-
-      output.forEach((file) => {
-        if (isOutputChunk(file)) {
-          expect(file.code).toEqual(chunkCode[file.fileName]);
-        } else {
-          expect(file.source).toEqual(assetCode[file.fileName]);
-        }
-      });
-    });
+async function rollupGenerate(
+  manifest: WebExtensionManifest,
+  rollupOptions: Partial<RollupOptions>
+): Promise<RollupOutput> {
+  const bundle = await rollup({
+    ...rollupOptions,
+    plugins: [
+      ...(rollupOptions.plugins ?? []),
+      webExtension({
+        manifest,
+      }),
+    ],
   });
 
-  describe("Content Scripts - Typescript", () => {
-    it("Transforms and outputs manifest files with no imports", async () => {
-      const manifest = {
-        version: "2.0.0",
-        name: "Manifest Name",
-        description: "Manifest Description",
-        manifest_version: 2,
-        content_scripts: [
-          {
-            js: ["test/fixture/typescript/content.ts"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-        ],
-      };
+  return bundle.generate({});
+}
 
-      const outputManifest = {
-        ...manifest,
-        content_scripts: [
-          {
-            js: ["test/fixture/typescript/content.js"],
-            matches: ["https://*/*", "http://*/*"],
-          },
-        ],
-      };
+async function validateFixture(
+  { inputManifest, expectedManifest, assetCode, chunkCode },
+  rollupConfig: Partial<RollupOptions> = {}
+): Promise<void> {
+  const { output } = await rollupGenerate(
+    getManifest(inputManifest) as WebExtensionManifest,
+    rollupConfig
+  );
 
-      const bundle = await rollup({
-        plugins: [
-          sucrase({
-            exclude: ['node_modules/**'],
-            transforms: ['typescript']
-          }),
-          webExtension({
-            manifest,
-          }),
-        ],
+  assetCode = {
+    "manifest.json": getManifest(expectedManifest, true),
+    ...assetCode,
+  };
+
+  output.forEach((file) => {
+    if (isOutputChunk(file)) {
+      expect(file.code).toEqual(chunkCode[file.fileName]);
+    } else {
+      expect(file.source).toEqual(assetCode[file.fileName]);
+    }
+  });
+}
+
+async function validateTypescriptFixture(fixture): Promise<void> {
+  return validateFixture(fixture, {
+    plugins: [
+      sucrase({
+        exclude: ["node_modules/**"],
+        transforms: ["typescript"],
+      }),
+    ],
+  });
+}
+
+describe("Rollup Plugin Web Extension", () => {
+  describe("Content Scripts", () => {
+    describe('JavaScript', () => {
+      it("Outputs manifest files with no imports", async () => {
+        await validateFixture(JAVASCRIPT_CONTENT_WITH_NO_IMPORTS);
       });
+  
+      it("Outputs manifest files with unchunked import", async () => {
+        await validateFixture(JAVASCRIPT_CONTENT_WITH_UNCHUNKED_IMPORT);
+      });
+  
+      it("Outputs manifest files with chunked import", async () => {
+        await validateFixture(JAVASCRIPT_CONTENT_WITH_CHUNKED_IMPORT);
+      });
+  
+      it("Outputs manifest files with chunked dynamic import", async () => {
+        await validateFixture(JAVASCRIPT_CONTENT_WITH_DYNAMIC_IMPORT);
+      });
+    });
 
-      const { output } = await bundle.generate({});
-
-      const chunkCode = {
-        "test/fixture/typescript/content.js": `console.log("content");\n`,
-      };
-      const assetCode = {
-        "manifest.json": JSON.stringify(outputManifest, null, 2),
-      };
-
-      output.forEach((file) => {
-        if (isOutputChunk(file)) {
-          expect(file.code).toEqual(chunkCode[file.fileName]);
-        } else {
-          expect(file.source).toEqual(assetCode[file.fileName]);
-        }
+    describe('TypeScript', () => {
+      it("Outputs manifest files with no imports", async () => {
+        await validateTypescriptFixture(
+          TYPESCRIPT_CONTENT_WITH_NO_IMPORTS
+        );
       });
     });
   });
