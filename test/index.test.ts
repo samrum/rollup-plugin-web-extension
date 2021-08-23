@@ -10,25 +10,6 @@ import * as JAVASCRIPT_CONTENT_WITH_UNCHUNKED_IMPORT from "./fixture/index/javas
 import * as JAVASCRIPT_CONTENT_WITH_NO_IMPORTS from "./fixture/index/javascript/contentWithNoImports";
 import * as TYPESCRIPT_CONTENT_WITH_NO_IMPORTS from "./fixture/index/typescript/contentWithNoImports";
 
-function getManifest(
-  testProperties: Partial<WebExtensionManifest> = {},
-  asJson = false
-): WebExtensionManifest | string {
-  const manifest = {
-    version: "2.0.0",
-    name: "Manifest Name",
-    description: "Manifest Description",
-    manifest_version: 2,
-    ...testProperties,
-  };
-
-  if (asJson) {
-    return JSON.stringify(manifest, null, 2);
-  }
-
-  return manifest;
-}
-
 async function rollupGenerate(
   manifest: WebExtensionManifest,
   rollupOptions: Partial<RollupOptions>
@@ -46,27 +27,43 @@ async function rollupGenerate(
   return bundle.generate({});
 }
 
+interface TestFixture {
+  inputManifest: Partial<WebExtensionManifest>;
+  expectedManifest: Partial<WebExtensionManifest>;
+  assetCode?: { [entryAlias: string]: string };
+  chunkCode?: { [entryAlias: string]: string };
+}
+
 async function validateFixture(
   {
     inputManifest,
     expectedManifest,
     assetCode = {},
     chunkCode = {},
-  }: {
-    inputManifest: Partial<WebExtensionManifest>;
-    expectedManifest: Partial<WebExtensionManifest>;
-    assetCode?: { [entryAlias: string]: string };
-    chunkCode?: { [entryAlias: string]: string };
-  },
+  }: TestFixture,
   rollupConfig: Partial<RollupOptions> = {}
 ): Promise<void> {
+  const baseManifest = {
+    version: "2.0.0",
+    name: "Manifest Name",
+    description: "Manifest Description",
+    manifest_version: 2,
+  };
+
   const { output } = await rollupGenerate(
-    getManifest(inputManifest) as WebExtensionManifest,
+    {
+      ...baseManifest,
+      ...inputManifest,
+    },
     rollupConfig
   );
 
   assetCode = {
-    "manifest.json": getManifest(expectedManifest, true) as string,
+    "manifest.json": JSON.stringify(
+      { ...baseManifest, ...expectedManifest },
+      null,
+      2
+    ),
     ...assetCode,
   };
 
@@ -88,7 +85,7 @@ async function validateFixture(
   expect(Object.keys(assetCode)).toEqual([]);
 }
 
-async function validateTypescriptFixture(fixture): Promise<void> {
+async function validateTypescriptFixture(fixture: TestFixture): Promise<void> {
   return validateFixture(fixture, {
     plugins: [
       sucrase({
