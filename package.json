@@ -4,6 +4,7 @@
   "description": "A rollup plugin to help create web extensions",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
+  "types": "types/index.d.ts",
   "engines": {
     "node": ">=8.0.0"
   },
@@ -37,5 +38,7 @@
   "peerDependencies": {
     "rollup": "^2.55.1"
   },
-  "types": "types/index.d.ts"
+  "dependencies": {
+    "@types/chrome": "^0.0.154"
+  }
 }

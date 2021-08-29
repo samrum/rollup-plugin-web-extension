@@ -3,6 +3,7 @@ lockfileVersion: 5.3
 specifiers:
   '@rollup/plugin-sucrase': ^4.0.0
   '@rollup/plugin-typescript': ^8.2.5
+  '@types/chrome': ^0.0.154
   '@types/jest': ^26.0.24
   '@types/node': ^16.4.9
   jest: ^27.0.6
@@ -11,6 +12,9 @@ specifiers:
   ts-jest: ^27.0.4
   tslib: ^2.3.0
   typescript: ^4.3.5
+
+dependencies:
+  '@types/chrome': 0.0.154
 
 devDependencies:
   '@rollup/plugin-sucrase': 4.0.0_rollup@2.55.1
@@ -677,15 +681,33 @@ packages:
       '@babel/types': 7.14.9
     dev: true
 
+  /@types/chrome/0.0.154:
+    resolution: {integrity: sha512-6QmP744MeMUZUIUHED4d4L2la5dIF1e6bcrkGF4yGQTyO94ER+r++Ss165wkzA5cAGUYt8kToDa6L9xtNqVMxg==}
+    dependencies:
+      '@types/filesystem': 0.0.32
+      '@types/har-format': 1.2.7
+    dev: false
+
   /@types/estree/0.0.39:
     resolution: {integrity: sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==}
     dev: true
+
+  /@types/filesystem/0.0.32:
+    resolution: {integrity: sha512-Yuf4jR5YYMR2DVgwuCiP11s0xuVRyPKmz8vo6HBY3CGdeMj8af93CFZX+T82+VD1+UqHOxTq31lO7MI7lepBtQ==}
+    dependencies:
+      '@types/filewriter': 0.0.29
+
+  /@types/filewriter/0.0.29:
+    resolution: {integrity: sha512-BsPXH/irW0ht0Ji6iw/jJaK8Lj3FJemon2gvEqHKpCdDCeemHa+rI3WBGq5z7cDMZgoLjY40oninGxqk+8NzNQ==}
 
   /@types/graceful-fs/4.1.5:
     resolution: {integrity: sha512-anKkLmZZ+xm4p8JWBf4hElkM4XR+EZeA2M9BAkkTldmcyDY4mbdIJnRghDJH3Ov5ooY7/UAoENtmdMSkaAd7Cw==}
     dependencies:
       '@types/node': 16.4.9
     dev: true
+
+  /@types/har-format/1.2.7:
+    resolution: {integrity: sha512-/TPzUG0tJn5x1TUcVLlDx2LqbE58hyOzDVAc9kf8SpOEmguHjU6bKUyfqb211AdqLOmU/SNyXvLKPNP5qTlfRw==}
 
   /@types/istanbul-lib-coverage/2.0.3:
     resolution: {integrity: sha512-sz7iLqvVUg1gIedBOvlkxPlc8/uVzyS5OwGz1cKjXzkl3FpL3al0crU8YGU1WoHkxn0Wxbw5tyi6hvzJKNzFsw==}
