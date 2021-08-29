@@ -1,4 +1,4 @@
-export const inputManifest = {
+const inputManifest = {
   content_scripts: [
     {
       js: [
@@ -15,7 +15,7 @@ export const inputManifest = {
   ],
 };
 
-export const expectedManifest = {
+const expectedManifest = {
   content_scripts: [
     {
       js: [
@@ -37,7 +37,7 @@ export const expectedManifest = {
   ],
 };
 
-export const chunkCode = {
+const chunkCode = {
   "test/fixture/index/javascript/contentWithDynamicImport/content1.js": `(async () => {
   const importable = await import('../../../../../importable-a864a292.js');
 
@@ -62,7 +62,14 @@ export { importable as default };
 `,
 };
 
-export const assetCode = {
+const assetCode = {
   "loader/test/fixture/index/javascript/contentWithDynamicImport/content1.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/index/javascript/contentWithDynamicImport/content1.js"))})();`,
   "loader/test/fixture/index/javascript/contentWithDynamicImport/content2.js": `(async()=>{await import(chrome.runtime.getURL("test/fixture/index/javascript/contentWithDynamicImport/content2.js"))})();`,
+};
+
+export default {
+  inputManifest,
+  expectedManifest,
+  chunkCode,
+  assetCode
 };

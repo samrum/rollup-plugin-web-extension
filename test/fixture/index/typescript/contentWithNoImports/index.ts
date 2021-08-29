@@ -1,4 +1,4 @@
-export const inputManifest = {
+const inputManifest = {
   content_scripts: [
     {
       js: ["test/fixture/index/typescript/contentWithNoImports/content.ts"],
@@ -7,7 +7,7 @@ export const inputManifest = {
   ],
 };
 
-export const expectedManifest = {
+const expectedManifest = {
   content_scripts: [
     {
       js: ["test/fixture/index/typescript/contentWithNoImports/content.js"],
@@ -16,8 +16,15 @@ export const expectedManifest = {
   ],
 };
 
-export const chunkCode = {
+const chunkCode = {
   "test/fixture/index/typescript/contentWithNoImports/content.js": `console.log("content");\n`,
 };
 
-export const assetCode = {};
+const assetCode = {};
+
+export default {
+  inputManifest,
+  expectedManifest,
+  chunkCode,
+  assetCode
+};

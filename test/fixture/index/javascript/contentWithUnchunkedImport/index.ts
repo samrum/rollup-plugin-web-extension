@@ -1,4 +1,4 @@
-export const inputManifest = {
+const inputManifest = {
   content_scripts: [
     {
       js: [
@@ -9,7 +9,7 @@ export const inputManifest = {
   ],
 };
 
-export const expectedManifest = {
+const expectedManifest = {
   content_scripts: [
     {
       js: [
@@ -20,7 +20,7 @@ export const expectedManifest = {
   ],
 };
 
-export const chunkCode = {
+const chunkCode = {
   "test/fixture/index/javascript/contentWithUnchunkedImport/content.js": `function importable() {
   console.log("importable");
 }
@@ -30,4 +30,11 @@ console.log("content");
 `,
 };
 
-export const assetCode = {};
+const assetCode = {};
+
+export default {
+  inputManifest,
+  expectedManifest,
+  chunkCode,
+  assetCode
+};
