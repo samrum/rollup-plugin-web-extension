@@ -1,4 +1,7 @@
-import { validateFixture, validateTypescriptFixture } from "./util/fixtureValidation";
+import {
+  validateFixture,
+  validateTypescriptFixture,
+} from "./util/fixtureValidation";
 import * as JAVASCRIPT_TEST_FIXTURES from "./fixture/index/javascript";
 import * as TYPESCRIPT_TEST_FIXTURES from "./fixture/index/typescript";
 

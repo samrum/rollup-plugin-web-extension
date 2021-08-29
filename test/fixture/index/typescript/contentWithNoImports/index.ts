@@ -26,5 +26,5 @@ export default {
   inputManifest,
   expectedManifest,
   chunkCode,
-  assetCode
+  assetCode,
 };

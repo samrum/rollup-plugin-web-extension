@@ -1,1 +1,1 @@
-export { default as ContentWithNoImports } from './contentWithNoImports';
+export { default as ContentWithNoImports } from "./contentWithNoImports";

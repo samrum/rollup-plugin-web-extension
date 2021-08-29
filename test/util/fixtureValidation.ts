@@ -80,7 +80,9 @@ export async function validateFixture(
   expect(Object.keys(assetCode)).toEqual([]);
 }
 
-export async function validateTypescriptFixture(fixture: TestFixture): Promise<void> {
+export async function validateTypescriptFixture(
+  fixture: TestFixture
+): Promise<void> {
   return validateFixture(fixture, {
     plugins: [
       sucrase({
