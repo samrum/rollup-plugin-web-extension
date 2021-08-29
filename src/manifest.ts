@@ -41,22 +41,24 @@ export function parseManifestHtmlFiles(manifest: WebExtensionManifest): {
   let inputScripts: [string, string][] = [];
   let emitFiles: EmittedFile[] = [];
 
-  if (manifest.background?.page) {
-    const {
-      inputScripts: backgroundInputScripts,
-      emitFiles: backgroundEmitFiles,
-    } = parseManifestHtmlFile(manifest.background.page);
+  if (manifest.manifest_version === 2) {
+    if (manifest.background?.page) {
+      const {
+        inputScripts: backgroundInputScripts,
+        emitFiles: backgroundEmitFiles,
+      } = parseManifestHtmlFile(manifest.background.page);
 
-    inputScripts = inputScripts.concat(backgroundInputScripts);
-    emitFiles = emitFiles.concat(backgroundEmitFiles);
-  }
+      inputScripts = inputScripts.concat(backgroundInputScripts);
+      emitFiles = emitFiles.concat(backgroundEmitFiles);
+    }
 
-  if (manifest.browser_action?.default_popup) {
-    const { inputScripts: popupInputScripts, emitFiles: popupEmitFiles } =
-      parseManifestHtmlFile(manifest.browser_action.default_popup);
+    if (manifest.browser_action?.default_popup) {
+      const { inputScripts: popupInputScripts, emitFiles: popupEmitFiles } =
+        parseManifestHtmlFile(manifest.browser_action.default_popup);
 
-    inputScripts = inputScripts.concat(popupInputScripts);
-    emitFiles = emitFiles.concat(popupEmitFiles);
+      inputScripts = inputScripts.concat(popupInputScripts);
+      emitFiles = emitFiles.concat(popupEmitFiles);
+    }
   }
 
   return {
@@ -116,6 +118,13 @@ export function addDynamicImportsToManifestContentScripts(
   emitFiles: EmittedFile[];
 } {
   const emitFiles: EmittedFile[] = [];
+
+  if (manifest.manifest_version !== 2) {
+    return {
+      emitFiles,
+    };
+  }
+
   const webAccessibleResources = new Set(
     manifest.web_accessible_resources ?? []
   );
