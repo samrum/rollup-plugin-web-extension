@@ -145,24 +145,26 @@ export function addDynamicImportsToManifestContentScripts(
         return;
       }
 
-      const wrapperFileName = `loader/${scriptFileName}`;
+      const scriptLoaderFile = getScriptLoaderFile(scriptFileName);
+
+      script.js![index] = scriptLoaderFile.fileName;
 
       emitFiles.push({
         type: "asset",
-        fileName: wrapperFileName,
-        source: `(async()=>{await import(chrome.runtime.getURL("${scriptFileName}"))})();`,
+        fileName: scriptLoaderFile.fileName,
+        source: scriptLoaderFile.source,
       });
 
-      script.js![index] = wrapperFileName;
       webAccessibleResources.add(scriptFileName);
 
-      bundleFile.imports.forEach((importFileName) => {
-        webAccessibleResources.add(importFileName);
-      });
-
-      bundleFile.dynamicImports.forEach((importFileName) => {
-        webAccessibleResources.add(importFileName);
-      });
+      bundleFile.imports.forEach(
+        webAccessibleResources.add,
+        webAccessibleResources
+      );
+      bundleFile.dynamicImports.forEach(
+        webAccessibleResources.add,
+        webAccessibleResources
+      );
     });
   });
 
@@ -172,5 +174,12 @@ export function addDynamicImportsToManifestContentScripts(
 
   return {
     emitFiles,
+  };
+}
+
+function getScriptLoaderFile(scriptFileName: string) {
+  return {
+    fileName: `loader/${scriptFileName}`,
+    source: `(async()=>{await import(chrome.runtime.getURL("${scriptFileName}"))})();`,
   };
 }
