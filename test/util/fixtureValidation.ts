@@ -6,14 +6,14 @@ import { isOutputChunk } from "./../../src/rollup";
 import type { WebExtensionManifest } from "./../../types/index";
 
 interface TestFixture {
-  inputManifest: Partial<WebExtensionManifest>;
-  expectedManifest: Partial<WebExtensionManifest>;
+  inputManifest: Partial<chrome.runtime.ManifestV2>;
+  expectedManifest: Partial<chrome.runtime.ManifestV2>;
   assetCode?: { [entryAlias: string]: string };
   chunkCode?: { [entryAlias: string]: string };
 }
 
 async function rollupGenerate(
-  manifest: WebExtensionManifest,
+  manifest: chrome.runtime.ManifestV2,
   rollupOptions: Partial<RollupOptions>
 ): Promise<RollupOutput> {
   const bundle = await rollup({
@@ -38,7 +38,7 @@ export async function validateFixture(
   }: TestFixture,
   rollupConfig: Partial<RollupOptions> = {}
 ): Promise<void> {
-  const baseManifest = {
+  const baseManifest: chrome.runtime.ManifestV2 = {
     version: "2.0.0",
     name: "Manifest Name",
     description: "Manifest Description",

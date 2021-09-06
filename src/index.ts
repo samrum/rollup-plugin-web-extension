@@ -1,14 +1,11 @@
 import type { Plugin, RollupOptions, EmittedFile } from "rollup";
-import type { RollupWebExtensionOptions, WebExtensionManifest } from "../types";
-import {
-  addDynamicImportsToManifestContentScripts,
-  parseManifestContentScripts,
-  parseManifestHtmlFiles,
-} from "./manifest";
+import type { RollupWebExtensionOptions } from "../types";
 import {
   getOptionsInputAsObject,
   addInputScriptsToOptionsInput,
 } from "./rollup";
+import ManifestV2 from "./parser/manifestV2";
+import ManifestParser from "./parser/manifestParser";
 
 export default function webExtension(
   pluginOptions: RollupWebExtensionOptions
@@ -17,17 +14,33 @@ export default function webExtension(
     throw new Error("Missing manifest definition");
   }
 
-  let outputManifest: WebExtensionManifest = pluginOptions.manifest;
+  let outputManifest: chrome.runtime.Manifest = pluginOptions.manifest;
   let emitQueue: EmittedFile[] = [];
+
+  if (!outputManifest.manifest_version) {
+    throw new Error("Missing manifest_version in manifest file");
+  }
+
+  let manifestParser: ManifestParser | undefined;
 
   return {
     name: "webExtension",
 
     options(options: RollupOptions) {
+      if (outputManifest.manifest_version === 2) {
+        manifestParser = new ManifestV2(outputManifest, this.meta.watchMode);
+      }
+
+      if (!manifestParser) {
+        throw new Error(
+          `No parser available for manifest version ${outputManifest.manifest_version}`
+        );
+      }
+
       options.input = getOptionsInputAsObject(options.input);
 
       const { inputScripts: contentScriptInputScripts } =
-        parseManifestContentScripts(outputManifest);
+        manifestParser.parseManifestContentScripts();
 
       options.input = addInputScriptsToOptionsInput(
         options.input,
@@ -35,7 +48,7 @@ export default function webExtension(
       );
 
       const { inputScripts: htmlInputScripts, emitFiles: htmlEmitFiles } =
-        parseManifestHtmlFiles(outputManifest);
+        manifestParser.parseManifestHtmlFiles();
 
       options.input = addInputScriptsToOptionsInput(
         options.input,
@@ -48,11 +61,8 @@ export default function webExtension(
     },
 
     generateBundle(_, bundle) {
-      const { emitFiles } = addDynamicImportsToManifestContentScripts(
-        outputManifest,
-        bundle,
-        this.meta.watchMode
-      );
+      const { emitFiles } =
+        manifestParser!.parseBundleForDynamicContentScripts(bundle);
 
       emitQueue.concat(emitFiles).forEach(this.emitFile);
       emitQueue = [];
@@ -60,7 +70,7 @@ export default function webExtension(
       this.emitFile({
         type: "asset",
         fileName: "manifest.json",
-        source: JSON.stringify(outputManifest, null, 2),
+        source: JSON.stringify(manifestParser!.getManifest(), null, 2),
       });
     },
   };

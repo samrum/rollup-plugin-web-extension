@@ -12,7 +12,8 @@
     "pretty": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es2017"
+    "target": "es2017",
+    "skipLibCheck": true
   },
   "exclude": ["dist", "node_modules", "test/types"],
   "include": ["src/**/*", "types/**/*"]
