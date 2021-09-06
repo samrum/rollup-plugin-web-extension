@@ -29,7 +29,10 @@ export function parseManifestHtmlFile(htmlFileName: string): ParseResult {
 
     html = html.replace(originalScript, updatedScript);
 
-    result.inputScripts.push([outputFileName, `${inputDirectory}/${scriptFileName}`]);
+    result.inputScripts.push([
+      outputFileName,
+      `${inputDirectory}/${scriptFileName}`,
+    ]);
   }
 
   result.emitFiles.push({

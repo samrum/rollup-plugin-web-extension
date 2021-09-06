@@ -67,7 +67,7 @@ export default class ManifestV2 implements ManifestParser {
       inputScripts: [],
       emitFiles: [],
     };
-    
+
     const webAccessibleResources = new Set(
       this.manifest.web_accessible_resources ?? []
     );
