@@ -1,17 +1,14 @@
-const currentDir = 'test/fixture/index/manifestV2/javascript/contentWithDynamicImport';
+const currentDir =
+  "test/fixture/index/manifestV2/javascript/contentWithDynamicImport";
 
 const inputManifest = {
   content_scripts: [
     {
-      js: [
-        `${currentDir}/content1.js`,
-      ],
+      js: [`${currentDir}/content1.js`],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      js: [
-        `${currentDir}/content2.js`,
-      ],
+      js: [`${currentDir}/content2.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -20,15 +17,11 @@ const inputManifest = {
 const expectedManifest = {
   content_scripts: [
     {
-      js: [
-        `loader/${currentDir}/content1.js`,
-      ],
+      js: [`loader/${currentDir}/content1.js`],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      js: [
-        `loader/${currentDir}/content2.js`,
-      ],
+      js: [`loader/${currentDir}/content2.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],

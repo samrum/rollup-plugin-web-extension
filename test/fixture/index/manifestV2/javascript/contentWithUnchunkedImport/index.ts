@@ -1,11 +1,10 @@
-const currentDir = 'test/fixture/index/manifestV2/javascript/contentWithUnchunkedImport';
+const currentDir =
+  "test/fixture/index/manifestV2/javascript/contentWithUnchunkedImport";
 
 const inputManifest = {
   content_scripts: [
     {
-      js: [
-        `${currentDir}/content.js`,
-      ],
+      js: [`${currentDir}/content.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -14,9 +13,7 @@ const inputManifest = {
 const expectedManifest = {
   content_scripts: [
     {
-      js: [
-        `${currentDir}/content.js`,
-      ],
+      js: [`${currentDir}/content.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],

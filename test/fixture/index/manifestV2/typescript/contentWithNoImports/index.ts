@@ -1,4 +1,5 @@
-const currentDirectory = 'test/fixture/index/manifestV2/typescript/contentWithNoImports';
+const currentDirectory =
+  "test/fixture/index/manifestV2/typescript/contentWithNoImports";
 
 const inputManifest = {
   content_scripts: [

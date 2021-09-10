@@ -1,4 +1,5 @@
-const currentDir = 'test/fixture/index/manifestV2/javascript/contentWithNoImports';
+const currentDir =
+  "test/fixture/index/manifestV2/javascript/contentWithNoImports";
 
 const inputManifest = {
   content_scripts: [
