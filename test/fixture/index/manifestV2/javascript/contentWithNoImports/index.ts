@@ -1,7 +1,9 @@
+const currentDir = 'test/fixture/index/manifestV2/javascript/contentWithNoImports';
+
 const inputManifest = {
   content_scripts: [
     {
-      js: ["test/fixture/index/javascript/contentWithNoImports/content.js"],
+      js: [`${currentDir}/content.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -10,14 +12,14 @@ const inputManifest = {
 const expectedManifest = {
   content_scripts: [
     {
-      js: ["test/fixture/index/javascript/contentWithNoImports/content.js"],
+      js: [`${currentDir}/content.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
 };
 
 const chunkCode = {
-  "test/fixture/index/javascript/contentWithNoImports/content.js": `console.log("content");\n`,
+  [`${currentDir}/content.js`]: `console.log("content");\n`,
 };
 
 const assetCode = {};

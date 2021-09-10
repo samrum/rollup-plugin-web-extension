@@ -2,22 +2,24 @@ import {
   validateFixture,
   validateTypescriptFixture,
 } from "./util/fixtureValidation";
-import * as JAVASCRIPT_TEST_FIXTURES from "./fixture/index/javascript";
-import * as TYPESCRIPT_TEST_FIXTURES from "./fixture/index/typescript";
+import * as MANIFESTV2_JAVASCRIPT_TESTS from "./fixture/index/manifestV2/javascript";
+import * as MANIFESTV2_TYPESCRIPT_TESTS from "./fixture/index/manifestV2/typescript";
 
 describe("Rollup Plugin Web Extension", () => {
-  describe("JavaScript", () => {
-    Object.entries(JAVASCRIPT_TEST_FIXTURES).forEach(([testName, fixture]) => {
-      test(testName, async () => {
-        await validateFixture(fixture);
+  describe("ManifestV2", () => {
+    describe("JavaScript", () => {
+      Object.entries(MANIFESTV2_JAVASCRIPT_TESTS).forEach(([testName, fixture]) => {
+        test(testName, async () => {
+          await validateFixture(fixture);
+        });
       });
     });
-  });
-
-  describe("TypeScript", () => {
-    Object.entries(TYPESCRIPT_TEST_FIXTURES).forEach(([testName, fixture]) => {
-      test(testName, async () => {
-        await validateTypescriptFixture(fixture);
+  
+    describe("TypeScript", () => {
+      Object.entries(MANIFESTV2_TYPESCRIPT_TESTS).forEach(([testName, fixture]) => {
+        test(testName, async () => {
+          await validateTypescriptFixture(fixture);
+        });
       });
     });
   });

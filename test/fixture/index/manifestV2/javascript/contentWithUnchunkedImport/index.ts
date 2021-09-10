@@ -1,8 +1,10 @@
+const currentDir = 'test/fixture/index/manifestV2/javascript/contentWithUnchunkedImport';
+
 const inputManifest = {
   content_scripts: [
     {
       js: [
-        "test/fixture/index/javascript/contentWithUnchunkedImport/content.js",
+        `${currentDir}/content.js`,
       ],
       matches: ["https://*/*", "http://*/*"],
     },
@@ -13,7 +15,7 @@ const expectedManifest = {
   content_scripts: [
     {
       js: [
-        "test/fixture/index/javascript/contentWithUnchunkedImport/content.js",
+        `${currentDir}/content.js`,
       ],
       matches: ["https://*/*", "http://*/*"],
     },
@@ -21,7 +23,7 @@ const expectedManifest = {
 };
 
 const chunkCode = {
-  "test/fixture/index/javascript/contentWithUnchunkedImport/content.js": `function importable() {
+  [`${currentDir}/content.js`]: `function importable() {
   console.log("importable");
 }
 
