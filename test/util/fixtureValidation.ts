@@ -3,7 +3,6 @@ import type { RollupOutput, RollupOptions } from "rollup";
 import sucrase from "@rollup/plugin-sucrase";
 import webExtension from "./../../src/index";
 import { isOutputChunk } from "./../../src/rollup";
-import type { WebExtensionManifest } from "./../../types/index";
 
 interface TestFixture {
   inputManifest: Partial<chrome.runtime.ManifestV2>;
@@ -13,13 +12,14 @@ interface TestFixture {
 }
 
 async function rollupGenerate(
-  manifest: chrome.runtime.ManifestV2,
-  rollupOptions: Partial<RollupOptions>
+  manifest: chrome.runtime.Manifest
 ): Promise<RollupOutput> {
   const bundle = await rollup({
-    ...rollupOptions,
     plugins: [
-      ...(rollupOptions.plugins ?? []),
+      sucrase({
+        exclude: ["node_modules/**"],
+        transforms: ["typescript"],
+      }),
       webExtension({
         manifest,
       }),
@@ -29,7 +29,7 @@ async function rollupGenerate(
   return bundle.generate({});
 }
 
-export async function validateFixture(
+async function validateFixture(
   {
     inputManifest,
     expectedManifest,
@@ -45,13 +45,10 @@ export async function validateFixture(
     manifest_version: 2,
   };
 
-  const { output } = await rollupGenerate(
-    {
-      ...baseManifest,
-      ...inputManifest,
-    },
-    rollupConfig
-  );
+  const { output } = await rollupGenerate({
+    ...baseManifest,
+    ...inputManifest,
+  });
 
   assetCode = {
     "manifest.json": JSON.stringify(
@@ -80,15 +77,12 @@ export async function validateFixture(
   expect(Object.keys(assetCode)).toEqual([]);
 }
 
-export async function validateTypescriptFixture(
-  fixture: TestFixture
-): Promise<void> {
-  return validateFixture(fixture, {
-    plugins: [
-      sucrase({
-        exclude: ["node_modules/**"],
-        transforms: ["typescript"],
-      }),
-    ],
+export async function validateManifestV2Fixtures(fixtures: {
+  [key: string]: TestFixture;
+}) {
+  Object.entries(fixtures).forEach(([testName, fixture]) => {
+    test(testName, async () => {
+      await validateFixture(fixture);
+    });
   });
 }
