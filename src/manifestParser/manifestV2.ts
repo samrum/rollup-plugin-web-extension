@@ -1,8 +1,8 @@
 import fs from "fs";
 import ManifestParser, { ParseResult } from "./manifestParser";
-import { getScriptLoaderFile, parseManifestHtmlFile } from "./manifestUtils";
+import { getScriptLoaderFile, parseManifestHtmlFile } from "./utils";
 import type { OutputBundle } from "rollup";
-import { isOutputChunk } from "./../rollup";
+import { isOutputChunk } from "../rollup";
 
 export default class ManifestV2 implements ManifestParser {
   constructor(

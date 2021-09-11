@@ -4,9 +4,9 @@ import sucrase from "@rollup/plugin-sucrase";
 import webExtension from "./../../src/index";
 import { isOutputChunk } from "./../../src/rollup";
 
-interface TestFixture {
-  inputManifest: Partial<chrome.runtime.ManifestV2>;
-  expectedManifest: Partial<chrome.runtime.ManifestV2>;
+interface TestFixture<ManifestType> {
+  inputManifest: Partial<ManifestType>;
+  expectedManifest: Partial<ManifestType>;
   assetCode?: { [entryAlias: string]: string };
   chunkCode?: { [entryAlias: string]: string };
 }
@@ -29,20 +29,20 @@ async function rollupGenerate(
   return bundle.generate({});
 }
 
-async function validateFixture(
+async function validateFixture<ManifestType>(
   {
     inputManifest,
     expectedManifest,
     assetCode = {},
     chunkCode = {},
-  }: TestFixture,
-  rollupConfig: Partial<RollupOptions> = {}
+  }: TestFixture<ManifestType>,
+  manifestVersion: 2 | 3
 ): Promise<void> {
-  const baseManifest: chrome.runtime.ManifestV2 = {
-    version: "2.0.0",
+  const baseManifest: chrome.runtime.Manifest = {
+    version: "1.0.0",
     name: "Manifest Name",
     description: "Manifest Description",
-    manifest_version: 2,
+    manifest_version: manifestVersion,
   };
 
   const { output } = await rollupGenerate({
@@ -78,11 +78,21 @@ async function validateFixture(
 }
 
 export async function validateManifestV2Fixtures(fixtures: {
-  [key: string]: TestFixture;
+  [key: string]: TestFixture<chrome.runtime.ManifestV2>;
 }) {
   Object.entries(fixtures).forEach(([testName, fixture]) => {
     test(testName, async () => {
-      await validateFixture(fixture);
+      await validateFixture(fixture, 2);
     });
+  });
+}
+
+export async function validateManifestV3Fixtures(fixtures: {
+  [key: string]: TestFixture<chrome.runtime.ManifestV3>;
+}) {
+  Object.entries(fixtures).forEach(([testName, fixture]) => {
+    // test(testName, async () => {
+    //   await validateFixture(fixture, 3);
+    // });
   });
 }

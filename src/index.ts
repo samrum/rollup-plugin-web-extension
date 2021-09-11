@@ -4,8 +4,8 @@ import {
   getOptionsInputAsObject,
   addInputScriptsToOptionsInput,
 } from "./rollup";
-import ManifestV2 from "./parser/manifestV2";
-import ManifestParser from "./parser/manifestParser";
+import ManifestV2 from "./manifestParser/manifestV2";
+import ManifestParser from "./manifestParser/manifestParser";
 
 export default function webExtension(
   pluginOptions: RollupWebExtensionOptions
