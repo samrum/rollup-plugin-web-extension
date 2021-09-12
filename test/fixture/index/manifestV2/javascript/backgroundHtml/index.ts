@@ -1,17 +1,16 @@
-const currentDir =
-  "test/fixture/index/manifestV2/javascript/backgroundHtml";
+const currentDir = "test/fixture/index/manifestV2/javascript/backgroundHtml";
 
 const inputManifest = {
-  "background": {
-    "page": `${currentDir}/background.html`,
-    "persistent": false
+  background: {
+    page: `${currentDir}/background.html`,
+    persistent: false,
   },
 };
 
 const expectedManifest = {
-  "background": {
-    "page": `${currentDir}/background.html`,
-    "persistent": false
+  background: {
+    page: `${currentDir}/background.html`,
+    persistent: false,
   },
 };
 
@@ -38,7 +37,7 @@ const assetCode = {
     <script type="module" src="ftp://example.com/ftpModuleScript.js"></script>
   </head>
 </html>
-`
+`,
 };
 
 export default {
