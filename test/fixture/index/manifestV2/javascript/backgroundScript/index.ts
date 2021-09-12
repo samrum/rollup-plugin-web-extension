@@ -9,14 +9,31 @@ const inputManifest = {
 
 const expectedManifest = {
   background: {
-    scripts: [`${currentDir}/background.js`],
     persistent: false,
+    page: `loader/background.html`,
   },
 };
 
-const chunkCode = {};
+const chunkCode = {
+  [`${currentDir}/background.js`]: `function importable() {
+  console.log("importable");
+}
 
-const assetCode = {};
+importable();
+console.log("background");
+`,
+};
+
+const assetCode = {
+  [`loader/background.html`]: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script type="module" src="${currentDir}/background.js"></script>
+  </head>
+</html>
+`,
+};
 
 export default {
   inputManifest,

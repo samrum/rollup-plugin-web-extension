@@ -10,7 +10,35 @@ export default class ManifestV2 implements ManifestParser {
     private isWatchMode: boolean = false
   ) {}
 
-  parseManifestContentScripts(): ParseResult {
+  parseManifest(): ParseResult {
+    const { inputScripts: htmlInputScripts, emitFiles: htmlEmitFiles } =
+      this.#parseManifestHtmlFiles();
+
+    const {
+      inputScripts: contentScriptInputScripts,
+      emitFiles: contentScriptEmitFiles,
+    } = this.#parseManifestContentScripts();
+
+    const {
+      inputScripts: backgroundInputScripts,
+      emitFiles: backgroundEmitFiles,
+    } = this.#parseManifestBackgroundScripts();
+
+    return {
+      inputScripts: [
+        ...contentScriptInputScripts,
+        ...backgroundInputScripts,
+        ...htmlInputScripts,
+      ],
+      emitFiles: [
+        ...contentScriptEmitFiles,
+        ...backgroundEmitFiles,
+        ...htmlEmitFiles,
+      ],
+    };
+  }
+
+  #parseManifestContentScripts(): ParseResult {
     const result: ParseResult = {
       inputScripts: [],
       emitFiles: [],
@@ -37,7 +65,44 @@ export default class ManifestV2 implements ManifestParser {
     return result;
   }
 
-  parseManifestHtmlFiles(): ParseResult {
+  #parseManifestBackgroundScripts(): ParseResult {
+    const result: ParseResult = {
+      inputScripts: [],
+      emitFiles: [],
+    };
+
+    if (!this.manifest.background?.scripts) {
+      return result;
+    }
+
+    const htmlScriptElements: string[] = [];
+
+    this.manifest.background.scripts.forEach((script) => {
+      const output = `${script.split(".")[0]}`;
+
+      result.inputScripts.push([output, script]);
+
+      htmlScriptElements.push(
+        `<script type="module" src="${output}.js"></script>`
+      );
+    });
+
+    const scriptLoaderHtmlFileName = "loader/background.html";
+    const scriptsHtml = htmlScriptElements.join("\n");
+
+    result.emitFiles.push({
+      type: "asset",
+      fileName: scriptLoaderHtmlFileName,
+      source: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />${scriptsHtml}</head></html>`,
+    });
+
+    delete this.manifest.background.scripts;
+    this.manifest.background.page = scriptLoaderHtmlFileName;
+
+    return result;
+  }
+
+  #parseManifestHtmlFiles(): ParseResult {
     const result: ParseResult = {
       inputScripts: [],
       emitFiles: [],

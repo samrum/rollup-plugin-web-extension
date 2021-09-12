@@ -30,8 +30,7 @@ describe("ManifestV2", () => {
         ],
       });
 
-      const { inputScripts, emitFiles } =
-        manifestV2.parseManifestContentScripts();
+      const { inputScripts, emitFiles } = manifestV2.parseManifest();
 
       expect(inputScripts).toEqual([
         ["src/content/index", "src/content/index.ts"],
@@ -54,8 +53,7 @@ describe("ManifestV2", () => {
 
       mockedFs.readFileSync.mockReturnValueOnce(".css {}");
 
-      const { inputScripts, emitFiles } =
-        manifestV2.parseManifestContentScripts();
+      const { inputScripts, emitFiles } = manifestV2.parseManifest();
 
       expect(inputScripts).toEqual([]);
       expect(emitFiles).toEqual([
@@ -93,7 +91,7 @@ describe("ManifestV2", () => {
       `.trim()
       );
 
-      const { inputScripts, emitFiles } = manifestV2.parseManifestHtmlFiles();
+      const { inputScripts, emitFiles } = manifestV2.parseManifest();
 
       expect(inputScripts).toEqual([
         ["src/background/index", "src/background/index.ts"],
@@ -137,7 +135,7 @@ describe("ManifestV2", () => {
       `.trim()
       );
 
-      const { inputScripts, emitFiles } = manifestV2.parseManifestHtmlFiles();
+      const { inputScripts, emitFiles } = manifestV2.parseManifest();
 
       expect(inputScripts).toEqual([
         ["src/pages/popup/index", "src/pages/popup/index.ts"],

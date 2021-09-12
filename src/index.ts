@@ -39,23 +39,14 @@ export default function webExtension(
 
       options.input = getOptionsInputAsObject(options.input);
 
-      const { inputScripts: contentScriptInputScripts } =
-        manifestParser.parseManifestContentScripts();
+      const { inputScripts, emitFiles } = manifestParser.parseManifest();
 
       options.input = addInputScriptsToOptionsInput(
         options.input,
-        contentScriptInputScripts
+        inputScripts
       );
 
-      const { inputScripts: htmlInputScripts, emitFiles: htmlEmitFiles } =
-        manifestParser.parseManifestHtmlFiles();
-
-      options.input = addInputScriptsToOptionsInput(
-        options.input,
-        htmlInputScripts
-      );
-
-      emitQueue = emitQueue.concat(htmlEmitFiles);
+      emitQueue = emitQueue.concat(emitFiles);
 
       return options;
     },

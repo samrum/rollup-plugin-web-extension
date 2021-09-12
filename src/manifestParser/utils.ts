@@ -15,6 +15,7 @@ export function parseManifestHtmlFile(htmlFileName: string): ParseResult {
   while ((match = scriptRegExp.exec(html)) !== null) {
     const [originalScriptElement, scriptFileName] = match;
 
+    // Don't process remote scripts
     if (/^[a-zA-Z]+\:\/\//.test(scriptFileName)) {
       continue;
     }

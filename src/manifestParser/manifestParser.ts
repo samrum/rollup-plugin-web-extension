@@ -1,9 +1,7 @@
 import type { EmittedFile, OutputBundle } from "rollup";
 
 export default interface ManifestParser {
-  parseManifestContentScripts(): ParseResult;
-
-  parseManifestHtmlFiles(): ParseResult;
+  parseManifest(): ParseResult;
 
   parseBundleForDynamicContentScripts(bundle: OutputBundle): ParseResult;
 
