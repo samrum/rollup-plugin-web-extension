@@ -1,6 +1,6 @@
 import fs from "fs";
 import { mocked } from "ts-jest/utils";
-import ManifestV2 from "../../src/parser/manifestV2";
+import ManifestV2 from "../../src/manifestParser/manifestV2";
 
 jest.mock("fs");
 
