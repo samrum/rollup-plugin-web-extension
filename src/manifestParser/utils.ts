@@ -13,13 +13,17 @@ export function parseManifestHtmlFile(htmlFileName: string): ParseResult {
   let match;
 
   while ((match = scriptRegExp.exec(html)) !== null) {
-    const [originalScript, scriptFileName] = match;
+    const [originalScriptElement, scriptFileName] = match;
+
+    if (/^[a-zA-Z]+\:\/\//.test(scriptFileName)) {
+      continue;
+    }
 
     const inputDirectory = htmlFileName.split("/").slice(0, -1).join("/");
     const outputFile = `${scriptFileName.split(".")[0]}`;
     const outputFileName = `${inputDirectory}/${outputFile}`;
 
-    let updatedScript = originalScript.replace(
+    let updatedScript = originalScriptElement.replace(
       `src="${scriptFileName}"`,
       `src="${outputFile}.js"`
     );
@@ -27,7 +31,7 @@ export function parseManifestHtmlFile(htmlFileName: string): ParseResult {
       updatedScript = `${updatedScript.slice(0, -1)} type="module">`;
     }
 
-    html = html.replace(originalScript, updatedScript);
+    html = html.replace(originalScriptElement, updatedScript);
 
     result.inputScripts.push([
       outputFileName,
