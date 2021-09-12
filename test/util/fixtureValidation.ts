@@ -59,6 +59,7 @@ async function validateFixture<ManifestType>(
     ...assetCode,
   };
 
+  // Number of output files should match expected output files defined in fixture
   expect(output.length).toEqual(
     Object.keys(chunkCode).length + Object.keys(assetCode).length
   );
