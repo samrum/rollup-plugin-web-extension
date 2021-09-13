@@ -29,14 +29,14 @@ async function rollupGenerate(
   return bundle.generate({});
 }
 
-async function validateFixture<ManifestType>(
+async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
   {
     inputManifest,
     expectedManifest,
     assetCode = {},
     chunkCode = {},
   }: TestFixture<ManifestType>,
-  manifestVersion: 2 | 3
+  manifestVersion: ManifestType["manifest_version"]
 ): Promise<void> {
   const baseManifest: chrome.runtime.Manifest = {
     version: "1.0.0",
