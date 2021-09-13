@@ -25,14 +25,7 @@ console.log("background");
 };
 
 const assetCode = {
-  [`loader/background.html`]: `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <script type="module" src="${currentDir}/background.js"></script>
-  </head>
-</html>
-`,
+  [`loader/background.html`]: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><script type="module" src="${currentDir}/background.js"></script></head></html>`,
 };
 
 export default {

@@ -1,6 +1,19 @@
-import type { RollupOptions, OutputAsset, OutputChunk } from "rollup";
+import type { InputOptions, OutputAsset, OutputChunk } from "rollup";
 
-export function getOptionsInputAsObject(input: RollupOptions["input"]): {
+export function addInputScriptsToOptionsInput(
+  optionsInput: InputOptions["input"],
+  inputScripts: [string, string][]
+): { [entryAlias: string]: string } {
+  const optionsInputObject = getOptionsInputAsObject(optionsInput);
+
+  inputScripts.forEach(
+    ([output, input]) => (optionsInputObject[output] = input)
+  );
+
+  return optionsInputObject;
+}
+
+function getOptionsInputAsObject(input: InputOptions["input"]): {
   [entryAlias: string]: string;
 } {
   if (typeof input === "string") {
@@ -24,18 +37,6 @@ export function getOptionsInputAsObject(input: RollupOptions["input"]): {
   }
 
   return input ?? {};
-}
-
-export function addInputScriptsToOptionsInput(
-  optionsInput: { [entryAlias: string]: string },
-  inputScripts: [string, string][]
-): { [entryAlias: string]: string } {
-  inputScripts.forEach(
-    ([output, input]) =>
-      ((optionsInput as { [entryAlias: string]: string })[output] = input)
-  );
-
-  return optionsInput;
 }
 
 export function isOutputChunk(

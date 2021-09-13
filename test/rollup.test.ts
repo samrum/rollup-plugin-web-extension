@@ -1,36 +1,31 @@
-import {
-  getOptionsInputAsObject,
-  addInputScriptsToOptionsInput,
-} from "./../src/rollup";
+import { addInputScriptsToOptionsInput } from "./../src/rollup";
 
 describe("Rollup", () => {
-  describe("getOptionsInputAsObject", () => {
-    it("Transforms string input to object", () => {
-      expect(getOptionsInputAsObject("src/index.js")).toEqual({
+  describe("addInputScriptsToOptionsInput", () => {
+    it("Adds input scripts to string input", () => {
+      expect(
+        addInputScriptsToOptionsInput("src/index.js", [
+          ["outputFile.js", "inputFile.js"],
+        ])
+      ).toEqual({
         "src/index.js": "src/index.js",
+        "outputFile.js": "inputFile.js",
       });
     });
 
-    it("Transforms array input to object", () => {
+    it("Adds input scripts to array input", () => {
       expect(
-        getOptionsInputAsObject(["src/index.js", "src/index2.js"])
+        addInputScriptsToOptionsInput(
+          ["src/index.js", "src/index2.js"],
+          [["outputFile.js", "inputFile.js"]]
+        )
       ).toEqual({
         "src/index.js": "src/index.js",
         "src/index2.js": "src/index2.js",
+        "outputFile.js": "inputFile.js",
       });
     });
 
-    it("Returns original object input", () => {
-      const input = {
-        "src/indexOut.js": "src/index.js",
-        "src/index2Out.js": "src/index2.js",
-      };
-
-      expect(getOptionsInputAsObject(input)).toEqual(input);
-    });
-  });
-
-  describe("addInputScriptsToOptionsInput", () => {
     it("Adds input scripts to empty options input object", () => {
       expect(
         addInputScriptsToOptionsInput({}, [["outputFile.js", "inputFile.js"]])

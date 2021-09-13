@@ -1,9 +1,6 @@
 import type { Plugin, RollupOptions, EmittedFile } from "rollup";
 import type { RollupWebExtensionOptions } from "../types";
-import {
-  getOptionsInputAsObject,
-  addInputScriptsToOptionsInput,
-} from "./rollup";
+import { addInputScriptsToOptionsInput } from "./rollup";
 import ManifestV2 from "./manifestParser/manifestV2";
 import ManifestParser from "./manifestParser/manifestParser";
 
@@ -21,14 +18,14 @@ export default function webExtension(
     throw new Error("Missing manifest_version in manifest file");
   }
 
-  let manifestParser: ManifestParser | undefined;
+  let manifestParser: ManifestParser<chrome.runtime.Manifest> | undefined;
 
   return {
     name: "webExtension",
 
-    options(options: RollupOptions) {
+    async options(options: RollupOptions) {
       if (outputManifest.manifest_version === 2) {
-        manifestParser = new ManifestV2(outputManifest, this.meta.watchMode);
+        manifestParser = new ManifestV2(this.meta.watchMode);
       }
 
       if (!manifestParser) {
@@ -37,9 +34,8 @@ export default function webExtension(
         );
       }
 
-      options.input = getOptionsInputAsObject(options.input);
-
-      const { inputScripts, emitFiles } = manifestParser.parseManifest();
+      const { inputScripts, emitFiles, manifest } =
+        await manifestParser.parseManifest(outputManifest);
 
       options.input = addInputScriptsToOptionsInput(
         options.input,
@@ -48,12 +44,16 @@ export default function webExtension(
 
       emitQueue = emitQueue.concat(emitFiles);
 
+      outputManifest = manifest;
+
       return options;
     },
 
-    generateBundle(_, bundle) {
-      const { emitFiles } =
-        manifestParser!.parseBundleForDynamicContentScripts(bundle);
+    async generateBundle(_, bundle) {
+      const { emitFiles, manifest } = await manifestParser!.parseOutputBundle(
+        bundle,
+        outputManifest
+      );
 
       emitQueue.concat(emitFiles).forEach(this.emitFile);
       emitQueue = [];
@@ -61,7 +61,7 @@ export default function webExtension(
       this.emitFile({
         type: "asset",
         fileName: "manifest.json",
-        source: JSON.stringify(manifestParser!.getManifest(), null, 2),
+        source: JSON.stringify(manifest, null, 2),
       });
     },
   };

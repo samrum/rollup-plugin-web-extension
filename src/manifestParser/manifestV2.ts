@@ -1,50 +1,36 @@
 import fs from "fs";
 import ManifestParser, { ParseResult } from "./manifestParser";
-import { getScriptLoaderFile, parseManifestHtmlFile } from "./utils";
+import { getScriptLoaderFile, parseManifestHtmlFile, pipe } from "./utils";
 import type { OutputBundle } from "rollup";
 import { isOutputChunk } from "../rollup";
 
-export default class ManifestV2 implements ManifestParser {
-  constructor(
-    private manifest: chrome.runtime.ManifestV2,
-    private isWatchMode: boolean = false
-  ) {}
+type ManifestV2ParseResult = ParseResult<chrome.runtime.ManifestV2>;
 
-  parseManifest(): ParseResult {
-    const { inputScripts: htmlInputScripts, emitFiles: htmlEmitFiles } =
-      this.#parseManifestHtmlFiles();
+export default class ManifestV2
+  implements ManifestParser<chrome.runtime.ManifestV2>
+{
+  constructor(private isWatchMode: boolean = false) {}
 
-    const {
-      inputScripts: contentScriptInputScripts,
-      emitFiles: contentScriptEmitFiles,
-    } = this.#parseManifestContentScripts();
-
-    const {
-      inputScripts: backgroundInputScripts,
-      emitFiles: backgroundEmitFiles,
-    } = this.#parseManifestBackgroundScripts();
-
-    return {
-      inputScripts: [
-        ...contentScriptInputScripts,
-        ...backgroundInputScripts,
-        ...htmlInputScripts,
-      ],
-      emitFiles: [
-        ...contentScriptEmitFiles,
-        ...backgroundEmitFiles,
-        ...htmlEmitFiles,
-      ],
-    };
+  async parseManifest(
+    manifest: chrome.runtime.ManifestV2
+  ): Promise<ManifestV2ParseResult> {
+    return pipe(
+      this,
+      {
+        inputScripts: [],
+        emitFiles: [],
+        manifest: manifest,
+      },
+      this.#parseManifestHtmlFiles,
+      this.#parseManifestContentScripts,
+      this.#parseManifestBackgroundScripts
+    );
   }
 
-  #parseManifestContentScripts(): ParseResult {
-    const result: ParseResult = {
-      inputScripts: [],
-      emitFiles: [],
-    };
-
-    this.manifest.content_scripts?.forEach((script) => {
+  #parseManifestContentScripts(
+    result: ManifestV2ParseResult
+  ): ManifestV2ParseResult {
+    result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile, index) => {
         const output = `${scriptFile.split(".")[0]}`;
 
@@ -65,19 +51,16 @@ export default class ManifestV2 implements ManifestParser {
     return result;
   }
 
-  #parseManifestBackgroundScripts(): ParseResult {
-    const result: ParseResult = {
-      inputScripts: [],
-      emitFiles: [],
-    };
-
-    if (!this.manifest.background?.scripts) {
+  #parseManifestBackgroundScripts(
+    result: ManifestV2ParseResult
+  ): ManifestV2ParseResult {
+    if (!result.manifest.background?.scripts) {
       return result;
     }
 
     const htmlScriptElements: string[] = [];
 
-    this.manifest.background.scripts.forEach((script) => {
+    result.manifest.background.scripts.forEach((script) => {
       const output = `${script.split(".")[0]}`;
 
       result.inputScripts.push([output, script]);
@@ -88,7 +71,7 @@ export default class ManifestV2 implements ManifestParser {
     });
 
     const scriptLoaderHtmlFileName = "loader/background.html";
-    const scriptsHtml = htmlScriptElements.join("\n");
+    const scriptsHtml = htmlScriptElements.join("");
 
     result.emitFiles.push({
       type: "asset",
@@ -96,21 +79,18 @@ export default class ManifestV2 implements ManifestParser {
       source: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />${scriptsHtml}</head></html>`,
     });
 
-    delete this.manifest.background.scripts;
-    this.manifest.background.page = scriptLoaderHtmlFileName;
+    delete result.manifest.background.scripts;
+    result.manifest.background.page = scriptLoaderHtmlFileName;
 
     return result;
   }
 
-  #parseManifestHtmlFiles(): ParseResult {
-    const result: ParseResult = {
-      inputScripts: [],
-      emitFiles: [],
-    };
-
+  #parseManifestHtmlFiles(
+    result: ManifestV2ParseResult
+  ): ManifestV2ParseResult {
     const htmlFileNames: (string | undefined)[] = [
-      this.manifest.background?.page,
-      this.manifest.browser_action?.default_popup,
+      result.manifest.background?.page,
+      result.manifest.browser_action?.default_popup,
     ];
 
     htmlFileNames.forEach((htmlFileName) => {
@@ -118,7 +98,8 @@ export default class ManifestV2 implements ManifestParser {
         return;
       }
 
-      const { inputScripts, emitFiles } = parseManifestHtmlFile(htmlFileName);
+      const { inputScripts = [], emitFiles = [] } =
+        parseManifestHtmlFile(htmlFileName);
 
       result.inputScripts = result.inputScripts.concat(inputScripts);
       result.emitFiles = result.emitFiles.concat(emitFiles);
@@ -127,14 +108,25 @@ export default class ManifestV2 implements ManifestParser {
     return result;
   }
 
-  parseBundleForDynamicContentScripts(bundle: OutputBundle): ParseResult {
-    const result: ParseResult = {
+  async parseOutputBundle(
+    bundle: OutputBundle,
+    manifest: chrome.runtime.ManifestV2
+  ): Promise<ManifestV2ParseResult> {
+    let result = {
       inputScripts: [],
       emitFiles: [],
+      manifest: manifest,
     };
 
+    return this.#parseBundleForDynamicContentScripts(result, bundle);
+  }
+
+  #parseBundleForDynamicContentScripts(
+    result: ManifestV2ParseResult,
+    bundle: OutputBundle
+  ): ManifestV2ParseResult {
     const webAccessibleResources = new Set(
-      this.manifest.web_accessible_resources ?? []
+      result.manifest.web_accessible_resources ?? []
     );
 
     if (this.isWatchMode) {
@@ -142,7 +134,7 @@ export default class ManifestV2 implements ManifestParser {
       webAccessibleResources.add("assets/*");
     }
 
-    this.manifest.content_scripts?.forEach((script) => {
+    result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
         const bundleFile = bundle[scriptFileName];
 
@@ -177,15 +169,11 @@ export default class ManifestV2 implements ManifestParser {
     });
 
     if (webAccessibleResources.size > 0) {
-      this.manifest.web_accessible_resources = Array.from(
+      result.manifest.web_accessible_resources = Array.from(
         webAccessibleResources
       );
     }
 
     return result;
-  }
-
-  getManifest(): chrome.runtime.ManifestV2 {
-    return this.manifest;
   }
 }

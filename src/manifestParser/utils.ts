@@ -1,8 +1,10 @@
 import fs from "fs";
 import { ParseResult } from "./manifestParser";
 
-export function parseManifestHtmlFile(htmlFileName: string): ParseResult {
-  const result: ParseResult = {
+export function parseManifestHtmlFile(
+  htmlFileName: string
+): Partial<ParseResult<chrome.runtime.Manifest>> {
+  const result: Partial<ParseResult<chrome.runtime.Manifest>> = {
     inputScripts: [],
     emitFiles: [],
   };
@@ -34,13 +36,13 @@ export function parseManifestHtmlFile(htmlFileName: string): ParseResult {
 
     html = html.replace(originalScriptElement, updatedScript);
 
-    result.inputScripts.push([
+    result.inputScripts?.push([
       outputFileName,
       `${inputDirectory}/${scriptFileName}`,
     ]);
   }
 
-  result.emitFiles.push({
+  result.emitFiles?.push({
     type: "asset",
     fileName: htmlFileName,
     source: html,
@@ -54,4 +56,15 @@ export function getScriptLoaderFile(scriptFileName: string) {
     fileName: `loader/${scriptFileName}`,
     source: `(async()=>{await import(chrome.runtime.getURL("${scriptFileName}"))})();`,
   };
+}
+
+export function pipe<T>(
+  context: any,
+  initialValue: T,
+  ...fns: ((result: T) => T)[]
+): T {
+  return fns.reduce(
+    (previousValue, fn) => fn.call(context, previousValue),
+    initialValue
+  );
 }
