@@ -1,19 +1,12 @@
 {
-  "name": "rollup-plugin-web-extension",
+  "name": "@samrum/rollup-plugin-web-extension",
   "version": "1.0.0",
-  "description": "A rollup plugin to help create web extensions",
+  "description": "A rollup plugin for generating cross platform web extensions",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "types/index.d.ts",
   "engines": {
     "node": ">=8.0.0"
-  },
-  "scripts": {
-    "build": "rollup -c",
-    "check": "tsc --noEmit",
-    "dev": "rollup -c -w",
-    "lint": "prettier --write .",
-    "test": "jest"
   },
   "files": [
     "dist",
@@ -21,24 +14,48 @@
     "README.md",
     "LICENSE"
   ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "lint": "tsc --noEmit && prettier --write --loglevel warn .",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samrum/rollup-plugin-web-extension.git"
+  },
+  "keywords": [
+    "rollup",
+    "chrome",
+    "web",
+    "browser",
+    "chrome",
+    "firefox",
+    "edge",
+    "extension"
+  ],
   "author": "Ruben Medina",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/samrum/rollup-plugin-web-extension/issues"
+  },
+  "homepage": "https://github.com/samrum/rollup-plugin-web-extension#readme",
   "devDependencies": {
     "@rollup/plugin-sucrase": "^4.0.0",
     "@rollup/plugin-typescript": "^8.2.5",
-    "@types/jest": "^26.0.24",
+    "@types/jest": "^27.0.1",
     "@types/node": "^16.4.9",
     "jest": "^27.0.6",
     "prettier": "2.3.2",
     "rollup": "^2.55.1",
     "ts-jest": "^27.0.4",
     "tslib": "^2.3.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.4.3"
   },
   "peerDependencies": {
     "rollup": "^2.55.1"
   },
   "dependencies": {
-    "@types/chrome": "^0.0.154"
+    "@types/chrome": "^0.0.157"
   }
 }
