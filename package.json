@@ -15,10 +15,11 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "build": "tsc --noEmit && rollup -c",
     "dev": "rollup -c -w",
-    "lint": "tsc --noEmit && prettier --write --loglevel warn .",
-    "test": "jest"
+    "lint": "prettier --write --loglevel warn .",
+    "test": "jest",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -45,7 +46,9 @@
     "@rollup/plugin-typescript": "^8.2.5",
     "@types/jest": "^27.0.1",
     "@types/node": "^16.4.9",
+    "husky": ">=6",
     "jest": "^27.0.6",
+    "lint-staged": ">=10",
     "prettier": "2.3.2",
     "rollup": "^2.55.1",
     "ts-jest": "^27.0.4",
@@ -57,5 +60,8 @@
   },
   "dependencies": {
     "@types/chrome": "^0.0.157"
+  },
+  "lint-staged": {
+    "*.{js,ts,css,md}": "prettier --write"
   }
 }
