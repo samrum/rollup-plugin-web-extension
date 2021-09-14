@@ -66,7 +66,7 @@ export default class ManifestV2
       result.inputScripts.push([output, script]);
 
       htmlScriptElements.push(
-        `<script type="module" src="${output}.js"></script>`
+        `<script type="module" src="/${output}.js"></script>`
       );
     });
 
