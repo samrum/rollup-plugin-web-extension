@@ -11,8 +11,7 @@
   "files": [
     "dist",
     "types",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ],
   "scripts": {
     "build": "tsc --noEmit && rollup -c",
