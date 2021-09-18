@@ -17,8 +17,7 @@ export function parseManifestHtmlFile(
   while ((match = scriptRegExp.exec(html)) !== null) {
     const [originalScriptElement, scriptFileName] = match;
 
-    // Don't process remote scripts
-    if (/^[a-zA-Z]+\:\/\//.test(scriptFileName)) {
+    if (isRemoteUrl(scriptFileName)) {
       continue;
     }
 
@@ -49,6 +48,10 @@ export function parseManifestHtmlFile(
   });
 
   return result;
+}
+
+export function isRemoteUrl(url: string): boolean {
+  return /^[a-zA-Z]+\:\/\//.test(url);
 }
 
 export function getScriptLoaderFile(scriptFileName: string) {

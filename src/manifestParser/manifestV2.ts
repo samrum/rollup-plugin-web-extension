@@ -1,6 +1,11 @@
 import fs from "fs";
 import ManifestParser, { ParseResult } from "./manifestParser";
-import { getScriptLoaderFile, parseManifestHtmlFile, pipe } from "./utils";
+import {
+  getScriptLoaderFile,
+  parseManifestHtmlFile,
+  pipe,
+  isRemoteUrl,
+} from "./utils";
 import type { OutputBundle } from "rollup";
 import { isOutputChunk } from "../rollup";
 
@@ -61,6 +66,12 @@ export default class ManifestV2
     const htmlScriptElements: string[] = [];
 
     result.manifest.background.scripts.forEach((script) => {
+      if (isRemoteUrl(script)) {
+        throw new Error(
+          `Background scripts cannot be remote locations -- ${script}`
+        );
+      }
+
       const output = `${script.split(".")[0]}`;
 
       result.inputScripts.push([output, script]);
