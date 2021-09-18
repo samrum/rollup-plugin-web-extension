@@ -66,10 +66,10 @@ async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
 
   output.forEach((file) => {
     if (isOutputChunk(file)) {
-      expect(chunkCode[file.fileName]).toEqual(file.code);
+      expect(file.code).toEqual(chunkCode[file.fileName]);
       delete chunkCode[file.fileName];
     } else {
-      expect(assetCode[file.fileName]).toEqual(file.source);
+      expect(file.source).toEqual(assetCode[file.fileName]);
       delete assetCode[file.fileName];
     }
   });
