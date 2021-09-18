@@ -102,6 +102,7 @@ export default class ManifestV2
     const htmlFileNames: (string | undefined)[] = [
       result.manifest.background?.page,
       result.manifest.browser_action?.default_popup,
+      result.manifest.options_ui?.page,
     ];
 
     htmlFileNames.forEach((htmlFileName) => {
