@@ -38,8 +38,8 @@ export default function webExtension(
         await manifestParser.parseManifest(outputManifest);
 
       options.input = addInputScriptsToOptionsInput(
-        options.input,
-        inputScripts
+        inputScripts,
+        options.input
       );
 
       emitQueue = emitQueue.concat(emitFiles);

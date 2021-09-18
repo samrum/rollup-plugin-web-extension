@@ -1,8 +1,8 @@
 import type { InputOptions, OutputAsset, OutputChunk } from "rollup";
 
 export function addInputScriptsToOptionsInput(
-  optionsInput: InputOptions["input"],
-  inputScripts: [string, string][]
+  inputScripts: [string, string][],
+  optionsInput: InputOptions["input"]
 ): { [entryAlias: string]: string } {
   const optionsInputObject = getOptionsInputAsObject(optionsInput);
 
