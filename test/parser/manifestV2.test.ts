@@ -15,7 +15,6 @@ describe("ManifestV2", () => {
     return {
       version: "2.0.0",
       name: "Manifest Name",
-      description: "Manifest Description",
       manifest_version: 2,
       ...manifest,
     };

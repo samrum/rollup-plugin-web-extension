@@ -41,7 +41,6 @@ async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
   const baseManifest: chrome.runtime.Manifest = {
     version: "1.0.0",
     name: "Manifest Name",
-    description: "Manifest Description",
     manifest_version: manifestVersion,
   };
 
