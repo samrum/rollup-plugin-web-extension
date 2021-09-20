@@ -11,19 +11,21 @@ export default function webExtension(
     throw new Error("Missing manifest definition");
   }
 
-  let outputManifest: chrome.runtime.Manifest = pluginOptions.manifest;
+  let inputManifest: chrome.runtime.Manifest = pluginOptions.manifest;
+  let outputManifest: chrome.runtime.Manifest;
   let emitQueue: EmittedFile[] = [];
-
-  if (!outputManifest.manifest_version) {
-    throw new Error("Missing manifest_version in manifest file");
-  }
-
   let manifestParser: ManifestParser<chrome.runtime.Manifest> | undefined;
 
   return {
     name: "webExtension",
 
     async options(options: RollupOptions) {
+      if (!inputManifest.manifest_version) {
+        throw new Error("Missing manifest_version in manifest");
+      }
+
+      outputManifest = JSON.parse(JSON.stringify(inputManifest));
+
       if (outputManifest.manifest_version === 2) {
         manifestParser = new ManifestV2(this.meta.watchMode);
       }
@@ -49,14 +51,28 @@ export default function webExtension(
       return options;
     },
 
+    buildStart() {
+      emitQueue.forEach((file) => {
+        if (!file.fileName) {
+          return;
+        }
+
+        this.emitFile(file);
+
+        if (!file.fileName.startsWith("loader/")) {
+          this.addWatchFile(file.fileName);
+        }
+      });
+      emitQueue = [];
+    },
+
     async generateBundle(_, bundle) {
       const { emitFiles, manifest } = await manifestParser!.parseOutputBundle(
         bundle,
         outputManifest
       );
 
-      emitQueue.concat(emitFiles).forEach(this.emitFile);
-      emitQueue = [];
+      emitFiles.forEach(this.emitFile);
 
       this.emitFile({
         type: "asset",
