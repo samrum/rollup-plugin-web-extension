@@ -5,6 +5,7 @@ import {
   parseManifestHtmlFile,
   pipe,
   isRemoteUrl,
+  getLoaderDirectory,
 } from "./utils";
 import type { OutputBundle } from "rollup";
 import { isOutputChunk } from "../rollup";
@@ -81,7 +82,7 @@ export default class ManifestV2
       );
     });
 
-    const scriptLoaderHtmlFileName = "loader/background.html";
+    const scriptLoaderHtmlFileName = `${getLoaderDirectory()}/background.html`;
     const scriptsHtml = htmlScriptElements.join("");
 
     result.emitFiles.push({

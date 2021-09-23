@@ -56,9 +56,13 @@ export function isRemoteUrl(url: string): boolean {
 
 export function getScriptLoaderFile(scriptFileName: string) {
   return {
-    fileName: `loader/${scriptFileName}`,
+    fileName: `${getLoaderDirectory()}/${scriptFileName}`,
     source: `(async()=>{await import(chrome.runtime.getURL("${scriptFileName}"))})();`,
   };
+}
+
+export function getLoaderDirectory() {
+  return "loader";
 }
 
 export function pipe<T>(

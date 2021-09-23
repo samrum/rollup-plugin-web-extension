@@ -3,6 +3,7 @@ import type { RollupWebExtensionOptions } from "../types";
 import { addInputScriptsToOptionsInput } from "./rollup";
 import ManifestV2 from "./manifestParser/manifestV2";
 import ManifestParser from "./manifestParser/manifestParser";
+import { getLoaderDirectory } from "./manifestParser/utils";
 
 export default function webExtension(
   pluginOptions: RollupWebExtensionOptions
@@ -59,7 +60,7 @@ export default function webExtension(
 
         this.emitFile(file);
 
-        if (!file.fileName.startsWith("loader/")) {
+        if (!file.fileName.startsWith(`${getLoaderDirectory()}/`)) {
           this.addWatchFile(file.fileName);
         }
       });
