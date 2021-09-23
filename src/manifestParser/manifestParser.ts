@@ -16,3 +16,7 @@ export interface ParseResult<ManifestType extends chrome.runtime.Manifest> {
   emitFiles: EmittedFile[];
   manifest: ManifestType;
 }
+
+export interface ManifestParserConfig {
+  isInWatchMode: boolean;
+}

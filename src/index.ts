@@ -27,8 +27,12 @@ export default function webExtension(
 
       outputManifest = JSON.parse(JSON.stringify(inputManifest));
 
+      const manifestParserConfig = {
+        isInWatchMode: this.meta.watchMode,
+      };
+
       if (outputManifest.manifest_version === 2) {
-        manifestParser = new ManifestV2(this.meta.watchMode);
+        manifestParser = new ManifestV2(manifestParserConfig);
       }
 
       if (!manifestParser) {

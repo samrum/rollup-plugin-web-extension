@@ -1,5 +1,8 @@
 import fs from "fs";
-import ManifestParser, { ParseResult } from "./manifestParser";
+import ManifestParser, {
+  ManifestParserConfig,
+  ParseResult,
+} from "./manifestParser";
 import {
   getScriptLoaderFile,
   parseManifestHtmlFile,
@@ -15,7 +18,7 @@ type ManifestV2ParseResult = ParseResult<chrome.runtime.ManifestV2>;
 export default class ManifestV2
   implements ManifestParser<chrome.runtime.ManifestV2>
 {
-  constructor(private isWatchMode: boolean = false) {}
+  constructor(private config: ManifestParserConfig) {}
 
   async parseManifest(
     manifest: chrome.runtime.ManifestV2
@@ -142,7 +145,7 @@ export default class ManifestV2
       result.manifest.web_accessible_resources ?? []
     );
 
-    if (this.isWatchMode) {
+    if (this.config.isInWatchMode) {
       // expose all files in watch mode to allow web-ext reloading to work when manifest changes are not applied on reload (eg. Firefox)
       webAccessibleResources.add("*");
     }

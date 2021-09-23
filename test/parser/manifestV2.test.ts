@@ -21,7 +21,9 @@ describe("ManifestV2", () => {
   }
 
   beforeEach(() => {
-    manifestV2 = new ManifestV2();
+    manifestV2 = new ManifestV2({
+      isInWatchMode: false,
+    });
   });
 
   describe("parseManifestContentScripts", () => {
