@@ -143,8 +143,8 @@ export default class ManifestV2
     );
 
     if (this.isWatchMode) {
-      // allow web-ext manifest reloading to work with rebuilt assets during watch
-      webAccessibleResources.add("assets/*");
+      // expose all files in watch mode to allow web-ext reloading to work when manifest changes are not applied on reload (eg. Firefox)
+      webAccessibleResources.add("*");
     }
 
     result.manifest.content_scripts?.forEach((script) => {
