@@ -91,8 +91,8 @@ export async function validateManifestV3Fixtures(fixtures: {
   [key: string]: TestFixture<chrome.runtime.ManifestV3>;
 }) {
   Object.entries(fixtures).forEach(([testName, fixture]) => {
-    // test(testName, async () => {
-    //   await validateFixture(fixture, 3);
-    // });
+    test(testName, async () => {
+      await validateFixture(fixture, 3);
+    });
   });
 }

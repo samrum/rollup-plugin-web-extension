@@ -1,22 +1,17 @@
 import fs from "fs";
+import path from "path";
 import ManifestParser, {
   ManifestParserConfig,
   ParseResult,
 } from "./manifestParser";
-import {
-  getScriptLoaderFile,
-  parseManifestHtmlFile,
-  pipe,
-  isRemoteUrl,
-  getLoaderDirectory,
-} from "./utils";
+import { getScriptLoaderFile, parseManifestHtmlFile, pipe } from "./utils";
 import type { OutputBundle } from "rollup";
 import { isOutputChunk } from "../rollup";
 
-type ManifestVersion = chrome.runtime.ManifestV2;
+type ManifestVersion = chrome.runtime.ManifestV3;
 type ManifestParseResult = ParseResult<ManifestVersion>;
 
-export default class ManifestV2 implements ManifestParser<ManifestVersion> {
+export default class ManifestV3 implements ManifestParser<ManifestVersion> {
   constructor(private config: ManifestParserConfig) {}
 
   async parseManifest(manifest: ManifestVersion): Promise<ManifestParseResult> {
@@ -29,7 +24,7 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
       },
       this.#parseManifestHtmlFiles,
       this.#parseManifestContentScripts,
-      this.#parseManifestBackgroundScripts
+      this.#parseManifestBackgroundServiceWorker
     );
   }
 
@@ -57,49 +52,26 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
     return result;
   }
 
-  #parseManifestBackgroundScripts(
+  #parseManifestBackgroundServiceWorker(
     result: ManifestParseResult
   ): ManifestParseResult {
-    if (!result.manifest.background?.scripts) {
+    if (!result.manifest.background?.service_worker) {
       return result;
     }
 
-    const htmlScriptElements: string[] = [];
+    const serviceWorkerScript = result.manifest.background?.service_worker;
 
-    result.manifest.background.scripts.forEach((script) => {
-      if (isRemoteUrl(script)) {
-        throw new Error(
-          `Background scripts cannot be remote locations -- ${script}`
-        );
-      }
+    const { name } = path.parse(serviceWorkerScript);
 
-      const output = `${script.split(".")[0]}`;
+    result.inputScripts.push([name, serviceWorkerScript]);
 
-      result.inputScripts.push([output, script]);
-
-      htmlScriptElements.push(
-        `<script type="module" src="/${output}.js"></script>`
-      );
-    });
-
-    const scriptLoaderHtmlFileName = `${getLoaderDirectory()}/background.html`;
-    const scriptsHtml = htmlScriptElements.join("");
-
-    result.emitFiles.push({
-      type: "asset",
-      fileName: scriptLoaderHtmlFileName,
-      source: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />${scriptsHtml}</head></html>`,
-    });
-
-    delete result.manifest.background.scripts;
-    result.manifest.background.page = scriptLoaderHtmlFileName;
+    result.manifest.background.service_worker = `${name}.js`;
 
     return result;
   }
 
   #parseManifestHtmlFiles(result: ManifestParseResult): ManifestParseResult {
     const htmlFileNames: (string | undefined)[] = [
-      result.manifest.background?.page,
       result.manifest.browser_action?.default_popup,
       result.manifest.options_ui?.page,
     ];
@@ -141,8 +113,11 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
     );
 
     if (this.config.isInWatchMode) {
-      // expose all files in watch mode to allow web-ext reloading to work when manifest changes are not applied on reload (eg. Firefox)
-      webAccessibleResources.add("*.js");
+      // expose all js files in watch mode since manifest changes are not respected on web-ext automatic reload in some browsers (eg. Firefox)
+      webAccessibleResources.add({
+        resources: ["*.js"],
+        matches: ["<all_urls>"],
+      });
     }
 
     result.manifest.content_scripts?.forEach((script) => {
@@ -166,16 +141,20 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
           source: scriptLoaderFile.source,
         });
 
-        webAccessibleResources.add(scriptFileName);
+        const resources = new Set<string>();
 
-        bundleFile.imports.forEach(
-          webAccessibleResources.add,
-          webAccessibleResources
-        );
+        resources.add(scriptFileName);
+
+        bundleFile.imports.forEach(resources.add, webAccessibleResources);
         bundleFile.dynamicImports.forEach(
-          webAccessibleResources.add,
+          resources.add,
           webAccessibleResources
         );
+
+        webAccessibleResources.add({
+          resources: Array.from(resources),
+          matches: script.matches!,
+        });
       });
     });
 

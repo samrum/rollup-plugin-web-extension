@@ -2,6 +2,7 @@ import type { Plugin, RollupOptions, EmittedFile } from "rollup";
 import type { RollupWebExtensionOptions } from "../types";
 import { addInputScriptsToOptionsInput } from "./rollup";
 import ManifestV2 from "./manifestParser/manifestV2";
+import ManifestV3 from "./manifestParser/manifestV3";
 import ManifestParser from "./manifestParser/manifestParser";
 import { getLoaderDirectory } from "./manifestParser/utils";
 
@@ -31,8 +32,13 @@ export default function webExtension(
         isInWatchMode: this.meta.watchMode,
       };
 
-      if (outputManifest.manifest_version === 2) {
-        manifestParser = new ManifestV2(manifestParserConfig);
+      switch (outputManifest.manifest_version) {
+        case 2:
+          manifestParser = new ManifestV2(manifestParserConfig);
+          break;
+        case 3:
+          manifestParser = new ManifestV3(manifestParserConfig);
+          break;
       }
 
       if (!manifestParser) {
