@@ -3,7 +3,7 @@ import {
   validateManifestV3Fixtures,
 } from "./util/fixtureValidation";
 import * as JAVASCRIPT_MANIFESTV2_TESTS from "./fixture/index/javascript/manifestV2";
-import * as MANIFESTV2_TYPESCRIPT_TESTS from "./fixture/index/manifestV2/typescript";
+import * as TYPESCRIPT_MANIFESTV2_TESTS from "./fixture/index/typescript/manifestV2";
 import * as JAVASCRIPT_MANIFESTV3_TESTS from "./fixture/index/javascript/manifestV3";
 
 describe("Rollup Plugin Web Extension", () => {
@@ -19,7 +19,7 @@ describe("Rollup Plugin Web Extension", () => {
 
   describe("TypeScript", () => {
     describe("ManifestV2", () => {
-      validateManifestV2Fixtures(MANIFESTV2_TYPESCRIPT_TESTS);
+      validateManifestV2Fixtures(TYPESCRIPT_MANIFESTV2_TESTS);
     });
   });
 });
