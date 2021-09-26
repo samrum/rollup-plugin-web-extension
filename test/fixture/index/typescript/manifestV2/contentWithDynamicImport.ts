@@ -1,14 +1,14 @@
 const resourceDir =
-  "test/fixture/index/javascript/resources/contentWithDynamicImport";
+  "test/fixture/index/typescript/resources/contentWithDynamicImport";
 
 const inputManifest = {
   content_scripts: [
     {
-      js: [`${resourceDir}/content1.js`],
+      js: [`${resourceDir}/content1.ts`],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      js: [`${resourceDir}/content2.js`],
+      js: [`${resourceDir}/content2.ts`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -26,14 +26,9 @@ const expectedManifest = {
     },
   ],
   web_accessible_resources: [
-    {
-      resources: [`${resourceDir}/content1.js`, "importable-9863da30.js"],
-      matches: ["https://*/*", "http://*/*"],
-    },
-    {
-      resources: [`${resourceDir}/content2.js`, "importable-9863da30.js"],
-      matches: ["https://*/*", "http://*/*"],
-    },
+    `${resourceDir}/content1.js`,
+    "importable-9863da30.js",
+    `${resourceDir}/content2.js`,
   ],
 };
 

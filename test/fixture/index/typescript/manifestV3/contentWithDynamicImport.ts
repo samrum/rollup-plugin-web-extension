@@ -1,14 +1,14 @@
 const resourceDir =
-  "test/fixture/index/javascript/resources/contentWithDynamicImport";
+  "test/fixture/index/typescript/resources/contentWithDynamicImport";
 
 const inputManifest = {
   content_scripts: [
     {
-      js: [`${resourceDir}/content1.js`],
+      js: [`${resourceDir}/content1.ts`],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      js: [`${resourceDir}/content2.js`],
+      js: [`${resourceDir}/content2.ts`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],

@@ -1,14 +1,14 @@
 const resourceDir =
-  "test/fixture/index/javascript/resources/contentWithDynamicImport";
+  "test/fixture/index/typescript/resources/contentWithChunkedImport";
 
 const inputManifest = {
   content_scripts: [
     {
-      js: [`${resourceDir}/content1.js`],
+      js: [`${resourceDir}/content1.ts`],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      js: [`${resourceDir}/content2.js`],
+      js: [`${resourceDir}/content2.ts`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -27,38 +27,32 @@ const expectedManifest = {
   ],
   web_accessible_resources: [
     {
-      resources: [`${resourceDir}/content1.js`, "importable-9863da30.js"],
+      resources: [`${resourceDir}/content1.js`, "importable-8e1bceda.js"],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      resources: [`${resourceDir}/content2.js`, "importable-9863da30.js"],
+      resources: [`${resourceDir}/content2.js`, "importable-8e1bceda.js"],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
 };
 
 const chunkCode = {
-  [`${resourceDir}/content1.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-9863da30.js');
+  [`${resourceDir}/content1.js`]: `import { i as importable } from '../../../../../../importable-8e1bceda.js';
 
-  importable();
-
-  console.log("content");
-})();
+importable();
+console.log("content");
 `,
-  [`${resourceDir}/content2.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-9863da30.js');
+  [`${resourceDir}/content2.js`]: `import { i as importable } from '../../../../../../importable-8e1bceda.js';
 
-  importable();
-
-  console.log("content2");
-})();
+importable();
+console.log("content2");
 `,
-  "importable-9863da30.js": `function importable() {
+  "importable-8e1bceda.js": `function importable() {
   console.log("importable");
 }
 
-export { importable as default };
+export { importable as i };
 `,
 };
 

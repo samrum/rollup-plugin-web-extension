@@ -27,14 +27,14 @@ const expectedManifest = {
   ],
   web_accessible_resources: [
     `${resourceDir}/content1.js`,
-    "importable-8364a465.js",
+    "importable-9863da30.js",
     `${resourceDir}/content2.js`,
   ],
 };
 
 const chunkCode = {
   [`${resourceDir}/content1.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-8364a465.js');
+  const importable = await import('../../../../../../importable-9863da30.js');
 
   importable();
 
@@ -42,14 +42,14 @@ const chunkCode = {
 })();
 `,
   [`${resourceDir}/content2.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-8364a465.js');
+  const importable = await import('../../../../../../importable-9863da30.js');
 
   importable();
 
   console.log("content2");
 })();
 `,
-  "importable-8364a465.js": `function importable() {
+  "importable-9863da30.js": `function importable() {
   console.log("importable");
 }
 

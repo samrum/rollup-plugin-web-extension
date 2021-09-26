@@ -1,5 +1,4 @@
-export { default as BackgroundHtml } from "./backgroundHtml";
-export { default as BackgroundScript } from "./backgroundScript";
+export { default as BackgroundServiceWorker } from "./backgroundServiceWorker";
 export { default as ContentCss } from "./contentCss";
 export { default as ContentWithDynamicImport } from "./contentWithDynamicImport";
 export { default as ContentWithChunkedImport } from "./contentWithChunkedImport";

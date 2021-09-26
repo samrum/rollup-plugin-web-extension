@@ -27,23 +27,23 @@ const expectedManifest = {
   ],
   web_accessible_resources: [
     `${resourceDir}/content1.js`,
-    "importable-06c01150.js",
+    "importable-8e1bceda.js",
     `${resourceDir}/content2.js`,
   ],
 };
 
 const chunkCode = {
-  [`${resourceDir}/content1.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
+  [`${resourceDir}/content1.js`]: `import { i as importable } from '../../../../../../importable-8e1bceda.js';
 
 importable();
 console.log("content");
 `,
-  [`${resourceDir}/content2.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
+  [`${resourceDir}/content2.js`]: `import { i as importable } from '../../../../../../importable-8e1bceda.js';
 
 importable();
 console.log("content2");
 `,
-  "importable-06c01150.js": `function importable() {
+  "importable-8e1bceda.js": `function importable() {
   console.log("importable");
 }
 
