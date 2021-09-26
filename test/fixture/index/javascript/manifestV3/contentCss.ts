@@ -1,10 +1,10 @@
-const currentDir = "test/fixture/index/javascript/resources/contentCss";
+const resourceDir = "test/fixture/index/javascript/resources/contentCss";
 
 const inputManifest = {
   content_scripts: [
     {
-      js: [`${currentDir}/content.js`],
-      css: [`${currentDir}/content.css`],
+      js: [`${resourceDir}/content.js`],
+      css: [`${resourceDir}/content.css`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -13,19 +13,19 @@ const inputManifest = {
 const expectedManifest = {
   content_scripts: [
     {
-      js: [`${currentDir}/content.js`],
-      css: [`${currentDir}/content.css`],
+      js: [`${resourceDir}/content.js`],
+      css: [`${resourceDir}/content.css`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
 };
 
 const chunkCode = {
-  [`${currentDir}/content.js`]: `console.log("content");\n`,
+  [`${resourceDir}/content.js`]: `console.log("content");\n`,
 };
 
 const assetCode = {
-  [`${currentDir}/content.css`]: `.css {
+  [`${resourceDir}/content.css`]: `.css {
 }\n`,
 };
 

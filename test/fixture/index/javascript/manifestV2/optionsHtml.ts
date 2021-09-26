@@ -1,19 +1,19 @@
-const currentDir = "test/fixture/index/javascript/resources/optionsHtml";
+const resourceDir = "test/fixture/index/javascript/resources/optionsHtml";
 
 const inputManifest = {
   options_ui: {
-    page: `${currentDir}/options.html`,
+    page: `${resourceDir}/options.html`,
   },
 };
 
 const expectedManifest = {
   options_ui: {
-    page: `${currentDir}/options.html`,
+    page: `${resourceDir}/options.html`,
   },
 };
 
 const chunkCode = {
-  [`${currentDir}/options.js`]: `function importable() {
+  [`${resourceDir}/options.js`]: `function importable() {
   console.log("importable");
 }
 
@@ -23,7 +23,7 @@ console.log("options");
 };
 
 const assetCode = {
-  [`${currentDir}/options.html`]: `<!DOCTYPE html>
+  [`${resourceDir}/options.html`]: `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />

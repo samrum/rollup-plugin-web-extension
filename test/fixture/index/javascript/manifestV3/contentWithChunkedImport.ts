@@ -1,14 +1,14 @@
-const currentDir =
+const resourceDir =
   "test/fixture/index/javascript/resources/contentWithChunkedImport";
 
 const inputManifest = {
   content_scripts: [
     {
-      js: [`${currentDir}/content1.js`],
+      js: [`${resourceDir}/content1.js`],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      js: [`${currentDir}/content2.js`],
+      js: [`${resourceDir}/content2.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -17,33 +17,33 @@ const inputManifest = {
 const expectedManifest = {
   content_scripts: [
     {
-      js: [`loader/${currentDir}/content1.js`],
+      js: [`loader/${resourceDir}/content1.js`],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      js: [`loader/${currentDir}/content2.js`],
+      js: [`loader/${resourceDir}/content2.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
   web_accessible_resources: [
     {
-      resources: [`${currentDir}/content1.js`, "importable-06c01150.js"],
+      resources: [`${resourceDir}/content1.js`, "importable-06c01150.js"],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      resources: [`${currentDir}/content2.js`, "importable-06c01150.js"],
+      resources: [`${resourceDir}/content2.js`, "importable-06c01150.js"],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
 };
 
 const chunkCode = {
-  [`${currentDir}/content1.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
+  [`${resourceDir}/content1.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
 
 importable();
 console.log("content");
 `,
-  [`${currentDir}/content2.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
+  [`${resourceDir}/content2.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
 
 importable();
 console.log("content2");
@@ -57,8 +57,8 @@ export { importable as i };
 };
 
 const assetCode = {
-  [`loader/${currentDir}/content1.js`]: `(async()=>{await import(chrome.runtime.getURL("${currentDir}/content1.js"))})();`,
-  [`loader/${currentDir}/content2.js`]: `(async()=>{await import(chrome.runtime.getURL("${currentDir}/content2.js"))})();`,
+  [`loader/${resourceDir}/content1.js`]: `(async()=>{await import(chrome.runtime.getURL("${resourceDir}/content1.js"))})();`,
+  [`loader/${resourceDir}/content2.js`]: `(async()=>{await import(chrome.runtime.getURL("${resourceDir}/content2.js"))})();`,
 };
 
 export default {

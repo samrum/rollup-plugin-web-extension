@@ -1,9 +1,9 @@
-const currentDir =
+const resourceDir =
   "test/fixture/index/javascript/resources/backgroundServiceWorker";
 
 const inputManifest = {
   background: {
-    service_worker: `${currentDir}/serviceWorker.js`,
+    service_worker: `${resourceDir}/serviceWorker.js`,
   },
 };
 

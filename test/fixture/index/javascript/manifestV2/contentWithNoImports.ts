@@ -1,10 +1,10 @@
-const currentDir =
+const resourceDir =
   "test/fixture/index/javascript/resources/contentWithNoImports";
 
 const inputManifest = {
   content_scripts: [
     {
-      js: [`${currentDir}/content.js`],
+      js: [`${resourceDir}/content.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -13,14 +13,14 @@ const inputManifest = {
 const expectedManifest = {
   content_scripts: [
     {
-      js: [`${currentDir}/content.js`],
+      js: [`${resourceDir}/content.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
 };
 
 const chunkCode = {
-  [`${currentDir}/content.js`]: `console.log("content");\n`,
+  [`${resourceDir}/content.js`]: `console.log("content");\n`,
 };
 
 const assetCode = {};

@@ -1,19 +1,19 @@
-const currentDir = "test/fixture/index/javascript/resources/popupHtml";
+const resourceDir = "test/fixture/index/javascript/resources/popupHtml";
 
 const inputManifest = {
   browser_action: {
-    default_popup: `${currentDir}/popup.html`,
+    default_popup: `${resourceDir}/popup.html`,
   },
 };
 
 const expectedManifest = {
   browser_action: {
-    default_popup: `${currentDir}/popup.html`,
+    default_popup: `${resourceDir}/popup.html`,
   },
 };
 
 const chunkCode = {
-  [`${currentDir}/popup.js`]: `function importable() {
+  [`${resourceDir}/popup.js`]: `function importable() {
   console.log("importable");
 }
 
@@ -23,7 +23,7 @@ console.log("popup");
 };
 
 const assetCode = {
-  [`${currentDir}/popup.html`]: `<!DOCTYPE html>
+  [`${resourceDir}/popup.html`]: `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />

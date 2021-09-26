@@ -1,8 +1,8 @@
-const currentDir = "test/fixture/index/javascript/resources/backgroundScript";
+const resourceDir = "test/fixture/index/javascript/resources/backgroundScript";
 
 const inputManifest = {
   background: {
-    scripts: [`${currentDir}/background.js`],
+    scripts: [`${resourceDir}/background.js`],
     persistent: false,
   },
 };
@@ -15,7 +15,7 @@ const expectedManifest = {
 };
 
 const chunkCode = {
-  [`${currentDir}/background.js`]: `function importable() {
+  [`${resourceDir}/background.js`]: `function importable() {
   console.log("importable");
 }
 
@@ -25,7 +25,7 @@ console.log("background");
 };
 
 const assetCode = {
-  [`loader/background.html`]: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><script type="module" src="/${currentDir}/background.js"></script></head></html>`,
+  [`loader/background.html`]: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><script type="module" src="/${resourceDir}/background.js"></script></head></html>`,
 };
 
 export default {

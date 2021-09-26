@@ -1,21 +1,21 @@
-const currentDir = "test/fixture/index/typescript/resources/backgroundHtml";
+const resourceDir = "test/fixture/index/typescript/resources/backgroundHtml";
 
 const inputManifest = {
   background: {
-    page: `${currentDir}/background.html`,
+    page: `${resourceDir}/background.html`,
     persistent: false,
   },
 };
 
 const expectedManifest = {
   background: {
-    page: `${currentDir}/background.html`,
+    page: `${resourceDir}/background.html`,
     persistent: false,
   },
 };
 
 const chunkCode = {
-  [`${currentDir}/background.js`]: `function importable() {
+  [`${resourceDir}/background.js`]: `function importable() {
   console.log("importable");
 }
 
@@ -25,7 +25,7 @@ console.log("background");
 };
 
 const assetCode = {
-  [`${currentDir}/background.html`]: `<!DOCTYPE html>
+  [`${resourceDir}/background.html`]: `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
