@@ -1,33 +1,33 @@
-const currentDir = "test/fixture/index/manifestV2/javascript/optionsHtml";
+const currentDir = "test/fixture/index/javascript/resources/popupHtml";
 
 const inputManifest = {
-  options_ui: {
-    page: `${currentDir}/options.html`,
+  browser_action: {
+    default_popup: `${currentDir}/popup.html`,
   },
 };
 
 const expectedManifest = {
-  options_ui: {
-    page: `${currentDir}/options.html`,
+  browser_action: {
+    default_popup: `${currentDir}/popup.html`,
   },
 };
 
 const chunkCode = {
-  [`${currentDir}/options.js`]: `function importable() {
+  [`${currentDir}/popup.js`]: `function importable() {
   console.log("importable");
 }
 
 importable();
-console.log("options");
+console.log("popup");
 `,
 };
 
 const assetCode = {
-  [`${currentDir}/options.html`]: `<!DOCTYPE html>
+  [`${currentDir}/popup.html`]: `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script type="module" src="options.js"></script>
+    <script type="module" src="popup.js"></script>
 
     <script src="http://example.com/httpScript.js"></script>
     <script type="module" src="http://example.com/httpModuleScript.js"></script>

@@ -1,5 +1,5 @@
 const currentDir =
-  "test/fixture/index/manifestV2/javascript/contentWithChunkedImport";
+  "test/fixture/index/javascript/resources/contentWithChunkedImport";
 
 const inputManifest = {
   content_scripts: [
@@ -27,23 +27,23 @@ const expectedManifest = {
   ],
   web_accessible_resources: [
     `${currentDir}/content1.js`,
-    "importable-c65777b0.js",
+    "importable-06c01150.js",
     `${currentDir}/content2.js`,
   ],
 };
 
 const chunkCode = {
-  [`${currentDir}/content1.js`]: `import { i as importable } from '../../../../../../importable-c65777b0.js';
+  [`${currentDir}/content1.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
 
 importable();
 console.log("content");
 `,
-  [`${currentDir}/content2.js`]: `import { i as importable } from '../../../../../../importable-c65777b0.js';
+  [`${currentDir}/content2.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
 
 importable();
 console.log("content2");
 `,
-  "importable-c65777b0.js": `function importable() {
+  "importable-06c01150.js": `function importable() {
   console.log("importable");
 }
 

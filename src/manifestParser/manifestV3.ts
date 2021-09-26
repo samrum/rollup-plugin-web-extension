@@ -145,11 +145,8 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
 
         resources.add(scriptFileName);
 
-        bundleFile.imports.forEach(resources.add, webAccessibleResources);
-        bundleFile.dynamicImports.forEach(
-          resources.add,
-          webAccessibleResources
-        );
+        bundleFile.imports.forEach(resources.add, resources);
+        bundleFile.dynamicImports.forEach(resources.add, resources);
 
         webAccessibleResources.add({
           resources: Array.from(resources),

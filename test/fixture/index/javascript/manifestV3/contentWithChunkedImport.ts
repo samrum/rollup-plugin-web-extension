@@ -1,5 +1,5 @@
 const currentDir =
-  "test/fixture/index/manifestV2/javascript/contentWithDynamicImport";
+  "test/fixture/index/javascript/resources/contentWithChunkedImport";
 
 const inputManifest = {
   content_scripts: [
@@ -26,34 +26,33 @@ const expectedManifest = {
     },
   ],
   web_accessible_resources: [
-    `${currentDir}/content1.js`,
-    "importable-654d3b87.js",
-    `${currentDir}/content2.js`,
+    {
+      resources: [`${currentDir}/content1.js`, "importable-06c01150.js"],
+      matches: ["https://*/*", "http://*/*"],
+    },
+    {
+      resources: [`${currentDir}/content2.js`, "importable-06c01150.js"],
+      matches: ["https://*/*", "http://*/*"],
+    },
   ],
 };
 
 const chunkCode = {
-  [`${currentDir}/content1.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-654d3b87.js');
+  [`${currentDir}/content1.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
 
-  importable();
-
-  console.log("content");
-})();
+importable();
+console.log("content");
 `,
-  [`${currentDir}/content2.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-654d3b87.js');
+  [`${currentDir}/content2.js`]: `import { i as importable } from '../../../../../../importable-06c01150.js';
 
-  importable();
-
-  console.log("content2");
-})();
+importable();
+console.log("content2");
 `,
-  "importable-654d3b87.js": `function importable() {
+  "importable-06c01150.js": `function importable() {
   console.log("importable");
 }
 
-export { importable as default };
+export { importable as i };
 `,
 };
 

@@ -1,5 +1,5 @@
 const currentDir =
-  "test/fixture/index/manifestV2/javascript/contentWithNoImports";
+  "test/fixture/index/javascript/resources/contentWithUnchunkedImport";
 
 const inputManifest = {
   content_scripts: [
@@ -20,7 +20,13 @@ const expectedManifest = {
 };
 
 const chunkCode = {
-  [`${currentDir}/content.js`]: `console.log("content");\n`,
+  [`${currentDir}/content.js`]: `function importable() {
+  console.log("importable");
+}
+
+importable();
+console.log("content");
+`,
 };
 
 const assetCode = {};

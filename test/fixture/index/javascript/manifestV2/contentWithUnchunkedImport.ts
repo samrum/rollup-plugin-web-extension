@@ -1,10 +1,10 @@
-const currentDir = "test/fixture/index/manifestV2/javascript/contentCss";
+const currentDir =
+  "test/fixture/index/javascript/resources/contentWithUnchunkedImport";
 
 const inputManifest = {
   content_scripts: [
     {
       js: [`${currentDir}/content.js`],
-      css: [`${currentDir}/content.css`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -14,19 +14,22 @@ const expectedManifest = {
   content_scripts: [
     {
       js: [`${currentDir}/content.js`],
-      css: [`${currentDir}/content.css`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
 };
 
 const chunkCode = {
-  [`${currentDir}/content.js`]: `console.log("content");\n`,
+  [`${currentDir}/content.js`]: `function importable() {
+  console.log("importable");
+}
+
+importable();
+console.log("content");
+`,
 };
 
-const assetCode = {
-  [`${currentDir}/content.css`]: `.css {}\n`,
-};
+const assetCode = {};
 
 export default {
   inputManifest,

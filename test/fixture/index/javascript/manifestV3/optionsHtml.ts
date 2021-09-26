@@ -1,35 +1,33 @@
-const currentDir = "test/fixture/index/javascript/resources/backgroundHtml";
+const currentDir = "test/fixture/index/javascript/resources/optionsHtml";
 
 const inputManifest = {
-  background: {
-    page: `${currentDir}/background.html`,
-    persistent: false,
+  options_ui: {
+    page: `${currentDir}/options.html`,
   },
 };
 
 const expectedManifest = {
-  background: {
-    page: `${currentDir}/background.html`,
-    persistent: false,
+  options_ui: {
+    page: `${currentDir}/options.html`,
   },
 };
 
 const chunkCode = {
-  [`${currentDir}/background.js`]: `function importable() {
+  [`${currentDir}/options.js`]: `function importable() {
   console.log("importable");
 }
 
 importable();
-console.log("background");
+console.log("options");
 `,
 };
 
 const assetCode = {
-  [`${currentDir}/background.html`]: `<!DOCTYPE html>
+  [`${currentDir}/options.html`]: `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script type="module" src="background.js"></script>
+    <script type="module" src="options.js"></script>
 
     <script src="http://example.com/httpScript.js"></script>
     <script type="module" src="http://example.com/httpModuleScript.js"></script>

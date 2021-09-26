@@ -1,33 +1,35 @@
-const currentDir = "test/fixture/index/manifestV2/javascript/popupHtml";
+const currentDir = "test/fixture/index/javascript/resources/backgroundHtml";
 
 const inputManifest = {
-  browser_action: {
-    default_popup: `${currentDir}/popup.html`,
+  background: {
+    page: `${currentDir}/background.html`,
+    persistent: false,
   },
 };
 
 const expectedManifest = {
-  browser_action: {
-    default_popup: `${currentDir}/popup.html`,
+  background: {
+    page: `${currentDir}/background.html`,
+    persistent: false,
   },
 };
 
 const chunkCode = {
-  [`${currentDir}/popup.js`]: `function importable() {
+  [`${currentDir}/background.js`]: `function importable() {
   console.log("importable");
 }
 
 importable();
-console.log("popup");
+console.log("background");
 `,
 };
 
 const assetCode = {
-  [`${currentDir}/popup.html`]: `<!DOCTYPE html>
+  [`${currentDir}/background.html`]: `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script type="module" src="popup.js"></script>
+    <script type="module" src="background.js"></script>
 
     <script src="http://example.com/httpScript.js"></script>
     <script type="module" src="http://example.com/httpModuleScript.js"></script>

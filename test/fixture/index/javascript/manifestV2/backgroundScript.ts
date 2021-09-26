@@ -1,4 +1,4 @@
-const currentDir = "test/fixture/index/manifestV2/javascript/backgroundScript";
+const currentDir = "test/fixture/index/javascript/resources/backgroundScript";
 
 const inputManifest = {
   background: {
