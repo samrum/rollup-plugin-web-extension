@@ -2,7 +2,7 @@ import { rollup } from "rollup";
 import type { RollupOutput, RollupOptions } from "rollup";
 import sucrase from "@rollup/plugin-sucrase";
 import webExtension from "./../../src/index";
-import { isOutputChunk } from "./../../src/rollup";
+import { isOutputChunk } from "./../../src/rollupUtils";
 
 interface TestFixture<ManifestType> {
   inputManifest: Partial<ManifestType>;

@@ -1,4 +1,5 @@
 import fs from "fs";
+import type { OutputBundle } from "rollup";
 import ManifestParser, {
   ManifestParserConfig,
   ParseResult,
@@ -10,8 +11,7 @@ import {
   isRemoteUrl,
   getLoaderDirectory,
 } from "./utils";
-import type { OutputBundle } from "rollup";
-import { isOutputChunk } from "../rollup";
+import { isOutputChunk } from "../rollupUtils";
 
 type ManifestVersion = chrome.runtime.ManifestV2;
 type ManifestParseResult = ParseResult<ManifestVersion>;

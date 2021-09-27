@@ -1,6 +1,6 @@
-import { addInputScriptsToOptionsInput } from "./../src/rollup";
+import { addInputScriptsToOptionsInput } from "./../src/rollupUtils";
 
-describe("Rollup", () => {
+describe("Rollup Utils", () => {
   describe("addInputScriptsToOptionsInput", () => {
     it("Adds input scripts to string input", () => {
       expect(

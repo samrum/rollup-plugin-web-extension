@@ -6,7 +6,7 @@ import ManifestParser, {
 } from "./manifestParser";
 import { getScriptLoaderFile, parseManifestHtmlFile, pipe } from "./utils";
 import type { OutputBundle } from "rollup";
-import { isOutputChunk } from "../rollup";
+import { isOutputChunk } from "../rollupUtils";
 
 type ManifestVersion = chrome.runtime.ManifestV3;
 type ManifestParseResult = ParseResult<ManifestVersion>;

@@ -1,6 +1,6 @@
 import type { Plugin, RollupOptions, EmittedFile } from "rollup";
 import type { RollupWebExtensionOptions } from "../types";
-import { addInputScriptsToOptionsInput } from "./rollup";
+import { addInputScriptsToOptionsInput } from "./rollupUtils";
 import ManifestV2 from "./manifestParser/manifestV2";
 import ManifestV3 from "./manifestParser/manifestV3";
 import ManifestParser from "./manifestParser/manifestParser";
