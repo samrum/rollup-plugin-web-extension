@@ -1,13 +1,13 @@
 const resourceDir = "test/fixture/index/typescript/resources/popupHtml";
 
 const inputManifest = {
-  browser_action: {
+  action: {
     default_popup: `${resourceDir}/popup.html`,
   },
 };
 
 const expectedManifest = {
-  browser_action: {
+  action: {
     default_popup: `${resourceDir}/popup.html`,
   },
 };

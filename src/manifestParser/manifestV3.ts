@@ -28,6 +28,27 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
     );
   }
 
+  #parseManifestHtmlFiles(result: ManifestParseResult): ManifestParseResult {
+    const htmlFileNames: (string | undefined)[] = [
+      result.manifest.action?.default_popup,
+      result.manifest.options_ui?.page,
+    ];
+
+    htmlFileNames.forEach((htmlFileName) => {
+      if (!htmlFileName) {
+        return;
+      }
+
+      const { inputScripts = [], emitFiles = [] } =
+        parseManifestHtmlFile(htmlFileName);
+
+      result.inputScripts = result.inputScripts.concat(inputScripts);
+      result.emitFiles = result.emitFiles.concat(emitFiles);
+    });
+
+    return result;
+  }
+
   #parseManifestContentScripts(
     result: ManifestParseResult
   ): ManifestParseResult {
@@ -66,27 +87,6 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
     result.inputScripts.push([name, serviceWorkerScript]);
 
     result.manifest.background.service_worker = `${name}.js`;
-
-    return result;
-  }
-
-  #parseManifestHtmlFiles(result: ManifestParseResult): ManifestParseResult {
-    const htmlFileNames: (string | undefined)[] = [
-      result.manifest.browser_action?.default_popup,
-      result.manifest.options_ui?.page,
-    ];
-
-    htmlFileNames.forEach((htmlFileName) => {
-      if (!htmlFileName) {
-        return;
-      }
-
-      const { inputScripts = [], emitFiles = [] } =
-        parseManifestHtmlFile(htmlFileName);
-
-      result.inputScripts = result.inputScripts.concat(inputScripts);
-      result.emitFiles = result.emitFiles.concat(emitFiles);
-    });
 
     return result;
   }
