@@ -1,7 +1,7 @@
 {
   "name": "@samrum/rollup-plugin-web-extension",
   "version": "1.0.0",
-  "description": "A rollup plugin for generating cross platform web extensions",
+  "description": "A rollup plugin for generating cross platform, module-based web extensions",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "types/index.d.ts",
