@@ -27,11 +27,11 @@ const expectedManifest = {
   ],
   web_accessible_resources: [
     {
-      resources: [`${resourceDir}/content1.js`, "importable-9863da30.js"],
+      resources: [`${resourceDir}/content1.js`, "importable-8364a465.js"],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      resources: [`${resourceDir}/content2.js`, "importable-9863da30.js"],
+      resources: [`${resourceDir}/content2.js`, "importable-8364a465.js"],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -39,7 +39,7 @@ const expectedManifest = {
 
 const chunkCode = {
   [`${resourceDir}/content1.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-9863da30.js');
+  const importable = await import('../../../../../../importable-8364a465.js');
 
   importable();
 
@@ -47,14 +47,14 @@ const chunkCode = {
 })();
 `,
   [`${resourceDir}/content2.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-9863da30.js');
+  const importable = await import('../../../../../../importable-8364a465.js');
 
   importable();
 
   console.log("content2");
 })();
 `,
-  "importable-9863da30.js": `function importable() {
+  "importable-8364a465.js": `function importable() {
   console.log("importable");
 }
 

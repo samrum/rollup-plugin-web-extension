@@ -8,15 +8,15 @@ import * as TYPESCRIPT_MANIFESTV2_TESTS from "./fixture/index/typescript/manifes
 import * as TYPESCRIPT_MANIFESTV3_TESTS from "./fixture/index/typescript/manifestV3";
 
 describe("Rollup Plugin Web Extension", () => {
-  // describe("JavaScript", () => {
-  //   describe("ManifestV2", () => {
-  //     validateManifestV2Fixtures(JAVASCRIPT_MANIFESTV2_TESTS);
-  //   });
+  describe("JavaScript", () => {
+    describe("ManifestV2", () => {
+      validateManifestV2Fixtures(JAVASCRIPT_MANIFESTV2_TESTS);
+    });
 
-  //   describe("ManifestV3", () => {
-  //     validateManifestV3Fixtures(JAVASCRIPT_MANIFESTV3_TESTS);
-  //   });
-  // });
+    describe("ManifestV3", () => {
+      validateManifestV3Fixtures(JAVASCRIPT_MANIFESTV3_TESTS);
+    });
+  });
 
   describe("TypeScript", () => {
     describe("ManifestV2", () => {
