@@ -65,6 +65,12 @@ async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
 
   output.forEach((file) => {
     if (isOutputChunk(file)) {
+      if (!chunkCode[file.fileName]) {
+        throw new Error(
+          `Missing expected output chunk definition for: ${file.fileName}`
+        );
+      }
+
       expect(file.code).toEqual(chunkCode[file.fileName]);
       delete chunkCode[file.fileName];
     } else {
