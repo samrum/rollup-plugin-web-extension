@@ -1,9 +1,6 @@
 import fs from "fs";
 import path from "path";
-import ManifestParser, {
-  ManifestParserConfig,
-  ParseResult,
-} from "./manifestParser";
+import ManifestParser, { ParseResult } from "./manifestParser";
 import { getScriptLoaderFile, parseManifestHtmlFile, pipe } from "./utils";
 import type { OutputBundle } from "rollup";
 import { isOutputChunk } from "../rollupUtils";
@@ -13,7 +10,7 @@ interface ManifestV3ParseResult extends ParseResult {
 }
 
 export default class ManifestV3 implements ManifestParser {
-  constructor(private config: ManifestParserConfig) {}
+  constructor() {}
 
   async parseManifest(
     manifest: ManifestV3ParseResult["manifest"]
@@ -154,15 +151,6 @@ export default class ManifestV3 implements ManifestParser {
     });
 
     if (webAccessibleResources.size > 0) {
-      // Commented out because web-ext doesn't work with manifest v3 service workers yet
-      // if (this.config.isInWatchMode) {
-      //   // expose all js files in watch mode since manifest changes are not respected on web-ext automatic reload in some browsers (eg. Firefox)
-      //   webAccessibleResources.add({
-      //     resources: ["*.js"],
-      //     matches: ["<all_urls>"],
-      //   });
-      // }
-
       result.manifest.web_accessible_resources = Array.from(
         webAccessibleResources
       );
