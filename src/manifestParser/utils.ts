@@ -4,8 +4,8 @@ import { ParseResult } from "./manifestParser";
 
 export function parseManifestHtmlFile(
   htmlFileName: string
-): Partial<ParseResult<chrome.runtime.Manifest>> {
-  const result: Partial<ParseResult<chrome.runtime.Manifest>> = {
+): Partial<ParseResult> {
+  const result: Partial<ParseResult> = {
     inputScripts: [],
     emitFiles: [],
   };

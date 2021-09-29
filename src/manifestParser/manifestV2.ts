@@ -14,13 +14,16 @@ import {
 } from "./utils";
 import { isOutputChunk } from "../rollupUtils";
 
-type ManifestVersion = chrome.runtime.ManifestV2;
-type ManifestParseResult = ParseResult<ManifestVersion>;
+interface ManifestV2ParseResult extends ParseResult {
+  manifest: chrome.runtime.ManifestV2;
+}
 
-export default class ManifestV2 implements ManifestParser<ManifestVersion> {
+export default class ManifestV2 implements ManifestParser {
   constructor(private config: ManifestParserConfig) {}
 
-  async parseManifest(manifest: ManifestVersion): Promise<ManifestParseResult> {
+  async parseManifest(
+    manifest: ManifestV2ParseResult["manifest"]
+  ): Promise<ManifestV2ParseResult> {
     return pipe(
       this,
       {
@@ -35,8 +38,8 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
   }
 
   #parseManifestContentScripts(
-    result: ManifestParseResult
-  ): ManifestParseResult {
+    result: ManifestV2ParseResult
+  ): ManifestV2ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile, index) => {
         const { dir, name } = path.parse(scriptFile);
@@ -60,8 +63,8 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
   }
 
   #parseManifestBackgroundScripts(
-    result: ManifestParseResult
-  ): ManifestParseResult {
+    result: ManifestV2ParseResult
+  ): ManifestV2ParseResult {
     if (!result.manifest.background?.scripts) {
       return result;
     }
@@ -100,7 +103,9 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
     return result;
   }
 
-  #parseManifestHtmlFiles(result: ManifestParseResult): ManifestParseResult {
+  #parseManifestHtmlFiles(
+    result: ManifestV2ParseResult
+  ): ManifestV2ParseResult {
     const htmlFileNames: (string | undefined)[] = [
       result.manifest.background?.page,
       result.manifest.browser_action?.default_popup,
@@ -124,8 +129,8 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
 
   async parseOutputBundle(
     bundle: OutputBundle,
-    manifest: ManifestVersion
-  ): Promise<ManifestParseResult> {
+    manifest: ManifestV2ParseResult["manifest"]
+  ): Promise<ManifestV2ParseResult> {
     let result = {
       inputScripts: [],
       emitFiles: [],
@@ -136,17 +141,12 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
   }
 
   #parseBundleForDynamicContentScripts(
-    result: ManifestParseResult,
+    result: ManifestV2ParseResult,
     bundle: OutputBundle
-  ): ManifestParseResult {
+  ): ManifestV2ParseResult {
     const webAccessibleResources = new Set(
       result.manifest.web_accessible_resources ?? []
     );
-
-    if (this.config.isInWatchMode) {
-      // expose all files in watch mode to allow web-ext reloading to work when manifest changes are not applied on reload (eg. Firefox)
-      webAccessibleResources.add("*.js");
-    }
 
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
@@ -183,6 +183,11 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
     });
 
     if (webAccessibleResources.size > 0) {
+      if (this.config.isInWatchMode) {
+        // expose all files in watch mode to allow web-ext reloading to work when manifest changes are not applied on reload (eg. Firefox)
+        webAccessibleResources.add("*.js");
+      }
+
       result.manifest.web_accessible_resources = Array.from(
         webAccessibleResources
       );

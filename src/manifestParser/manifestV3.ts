@@ -8,13 +8,16 @@ import { getScriptLoaderFile, parseManifestHtmlFile, pipe } from "./utils";
 import type { OutputBundle } from "rollup";
 import { isOutputChunk } from "../rollupUtils";
 
-type ManifestVersion = chrome.runtime.ManifestV3;
-type ManifestParseResult = ParseResult<ManifestVersion>;
+interface ManifestV3ParseResult extends ParseResult {
+  manifest: chrome.runtime.ManifestV3;
+}
 
-export default class ManifestV3 implements ManifestParser<ManifestVersion> {
+export default class ManifestV3 implements ManifestParser {
   constructor(private config: ManifestParserConfig) {}
 
-  async parseManifest(manifest: ManifestVersion): Promise<ManifestParseResult> {
+  async parseManifest(
+    manifest: ManifestV3ParseResult["manifest"]
+  ): Promise<ManifestV3ParseResult> {
     return pipe(
       this,
       {
@@ -28,7 +31,9 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
     );
   }
 
-  #parseManifestHtmlFiles(result: ManifestParseResult): ManifestParseResult {
+  #parseManifestHtmlFiles(
+    result: ManifestV3ParseResult
+  ): ManifestV3ParseResult {
     const htmlFileNames: (string | undefined)[] = [
       result.manifest.action?.default_popup,
       result.manifest.options_ui?.page,
@@ -50,8 +55,8 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
   }
 
   #parseManifestContentScripts(
-    result: ManifestParseResult
-  ): ManifestParseResult {
+    result: ManifestV3ParseResult
+  ): ManifestV3ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile, index) => {
         const { dir, name } = path.parse(scriptFile);
@@ -75,8 +80,8 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
   }
 
   #parseManifestBackgroundServiceWorker(
-    result: ManifestParseResult
-  ): ManifestParseResult {
+    result: ManifestV3ParseResult
+  ): ManifestV3ParseResult {
     if (!result.manifest.background?.service_worker) {
       return result;
     }
@@ -94,8 +99,8 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
 
   async parseOutputBundle(
     bundle: OutputBundle,
-    manifest: ManifestVersion
-  ): Promise<ManifestParseResult> {
+    manifest: ManifestV3ParseResult["manifest"]
+  ): Promise<ManifestV3ParseResult> {
     let result = {
       inputScripts: [],
       emitFiles: [],
@@ -106,20 +111,12 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
   }
 
   #parseBundleForDynamicContentScripts(
-    result: ManifestParseResult,
+    result: ManifestV3ParseResult,
     bundle: OutputBundle
-  ): ManifestParseResult {
+  ): ManifestV3ParseResult {
     const webAccessibleResources = new Set(
       result.manifest.web_accessible_resources ?? []
     );
-
-    if (this.config.isInWatchMode) {
-      // expose all js files in watch mode since manifest changes are not respected on web-ext automatic reload in some browsers (eg. Firefox)
-      webAccessibleResources.add({
-        resources: ["*.js"],
-        matches: ["<all_urls>"],
-      });
-    }
 
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
@@ -157,6 +154,15 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
     });
 
     if (webAccessibleResources.size > 0) {
+      // Commented out because web-ext doesn't work with manifest v3 service workers yet
+      // if (this.config.isInWatchMode) {
+      //   // expose all js files in watch mode since manifest changes are not respected on web-ext automatic reload in some browsers (eg. Firefox)
+      //   webAccessibleResources.add({
+      //     resources: ["*.js"],
+      //     matches: ["<all_urls>"],
+      //   });
+      // }
+
       result.manifest.web_accessible_resources = Array.from(
         webAccessibleResources
       );

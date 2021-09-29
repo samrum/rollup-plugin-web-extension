@@ -1,20 +1,18 @@
 import type { EmittedFile, OutputBundle } from "rollup";
 
-export default interface ManifestParser<
-  ManifestType extends chrome.runtime.Manifest
-> {
-  parseManifest(manifest: ManifestType): Promise<ParseResult<ManifestType>>;
+export default interface ManifestParser {
+  parseManifest(manifest: chrome.runtime.Manifest): Promise<ParseResult>;
 
   parseOutputBundle(
     bundle: OutputBundle,
-    manifest: ManifestType
-  ): Promise<ParseResult<ManifestType>>;
+    manifest: chrome.runtime.Manifest
+  ): Promise<ParseResult>;
 }
 
-export interface ParseResult<ManifestType extends chrome.runtime.Manifest> {
+export interface ParseResult {
   inputScripts: [string, string][];
   emitFiles: EmittedFile[];
-  manifest: ManifestType;
+  manifest: chrome.runtime.Manifest;
 }
 
 export interface ManifestParserConfig {

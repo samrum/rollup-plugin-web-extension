@@ -5,6 +5,7 @@ import ManifestV2 from "./manifestParser/manifestV2";
 import ManifestV3 from "./manifestParser/manifestV3";
 import ManifestParser from "./manifestParser/manifestParser";
 import { getLoaderDirectory } from "./manifestParser/utils";
+import ManifestParserFactory from "./manifestParser/manifestParserFactory";
 
 export default function webExtension(
   pluginOptions: RollupWebExtensionOptions
@@ -13,10 +14,11 @@ export default function webExtension(
     throw new Error("Missing manifest definition");
   }
 
-  let inputManifest: chrome.runtime.Manifest = pluginOptions.manifest;
+  const inputManifest: chrome.runtime.Manifest = pluginOptions.manifest;
+
   let outputManifest: chrome.runtime.Manifest;
   let emitQueue: EmittedFile[] = [];
-  let manifestParser: ManifestParser<chrome.runtime.Manifest> | undefined;
+  let manifestParser: ManifestParser | undefined;
 
   return {
     name: "webExtension",
@@ -28,24 +30,12 @@ export default function webExtension(
 
       outputManifest = JSON.parse(JSON.stringify(inputManifest));
 
-      const manifestParserConfig = {
-        isInWatchMode: this.meta.watchMode,
-      };
-
-      switch (outputManifest.manifest_version) {
-        case 2:
-          manifestParser = new ManifestV2(manifestParserConfig);
-          break;
-        case 3:
-          manifestParser = new ManifestV3(manifestParserConfig);
-          break;
-      }
-
-      if (!manifestParser) {
-        throw new Error(
-          `No parser available for manifest version ${outputManifest.manifest_version}`
-        );
-      }
+      manifestParser = ManifestParserFactory.getParser(
+        outputManifest.manifest_version,
+        {
+          isInWatchMode: this.meta.watchMode,
+        }
+      );
 
       const { inputScripts, emitFiles, manifest } =
         await manifestParser.parseManifest(outputManifest);
