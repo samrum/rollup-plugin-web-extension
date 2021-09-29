@@ -94,6 +94,7 @@ export default class ManifestV3 implements ManifestParser {
     result.inputScripts.push([name, serviceWorkerScript]);
 
     result.manifest.background.service_worker = `${name}.js`;
+    result.manifest.background.type = "module";
 
     return result;
   }
