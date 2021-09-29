@@ -27,7 +27,7 @@ const assetCode = {
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <script type="module" src="popup.js"></script>
+    <script type="module" src="/${resourceDir}/popup.js"></script>
 
     <script src="http://example.com/httpScript.js"></script>
     <script type="module" src="http://example.com/httpModuleScript.js"></script>

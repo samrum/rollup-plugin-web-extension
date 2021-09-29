@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import { ParseResult } from "./manifestParser";
 
 export function parseManifestHtmlFile(
@@ -21,13 +22,18 @@ export function parseManifestHtmlFile(
       continue;
     }
 
-    const inputDirectory = htmlFileName.split("/").slice(0, -1).join("/");
-    const outputFile = `${scriptFileName.split(".")[0]}`;
-    const outputFileName = `${inputDirectory}/${outputFile}`;
+    const { dir: htmlDir } = path.parse(htmlFileName);
+    const {
+      dir: scriptDir,
+      name: scriptName,
+      ext: scriptExt,
+    } = path.parse(scriptFileName);
+
+    const outputFile = `${scriptDir || htmlDir}/${scriptName}`;
 
     let updatedScript = originalScriptElement.replace(
       `src="${scriptFileName}"`,
-      `src="${outputFile}.js"`
+      `src="/${outputFile}.js"`
     );
     if (!updatedScript.includes('type="module"')) {
       updatedScript = `${updatedScript.slice(0, -1)} type="module">`;
@@ -35,10 +41,7 @@ export function parseManifestHtmlFile(
 
     html = html.replace(originalScriptElement, updatedScript);
 
-    result.inputScripts?.push([
-      outputFileName,
-      `${inputDirectory}/${scriptFileName}`,
-    ]);
+    result.inputScripts?.push([outputFile, `${outputFile}${scriptExt}`]);
   }
 
   result.emitFiles?.push({

@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import type { OutputBundle } from "rollup";
 import ManifestParser, {
   ManifestParserConfig,
@@ -38,11 +39,12 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
   ): ManifestParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile, index) => {
-        const output = `${scriptFile.split(".")[0]}`;
+        const { dir, name } = path.parse(scriptFile);
+        const outputFile = dir ? `${dir}/${name}` : name;
 
-        result.inputScripts.push([output, scriptFile]);
+        result.inputScripts.push([outputFile, scriptFile]);
 
-        script.js![index] = `${output}.js`;
+        script.js![index] = `${outputFile}.js`;
       });
 
       script.css?.forEach((cssFile) => {
@@ -73,12 +75,13 @@ export default class ManifestV2 implements ManifestParser<ManifestVersion> {
         );
       }
 
-      const output = `${script.split(".")[0]}`;
+      const { dir, name } = path.parse(script);
+      const outputFile = dir ? `${dir}/${name}` : name;
 
-      result.inputScripts.push([output, script]);
+      result.inputScripts.push([outputFile, script]);
 
       htmlScriptElements.push(
-        `<script type="module" src="/${output}.js"></script>`
+        `<script type="module" src="/${outputFile}.js"></script>`
       );
     });
 

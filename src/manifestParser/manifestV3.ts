@@ -54,11 +54,12 @@ export default class ManifestV3 implements ManifestParser<ManifestVersion> {
   ): ManifestParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile, index) => {
-        const output = `${scriptFile.split(".")[0]}`;
+        const { dir, name } = path.parse(scriptFile);
+        const outputFile = dir ? `${dir}/${name}` : name;
 
-        result.inputScripts.push([output, scriptFile]);
+        result.inputScripts.push([outputFile, scriptFile]);
 
-        script.js![index] = `${output}.js`;
+        script.js![index] = `${outputFile}.js`;
       });
 
       script.css?.forEach((cssFile) => {
