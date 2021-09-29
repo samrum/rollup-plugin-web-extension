@@ -59,8 +59,8 @@ export function isRemoteUrl(url: string): boolean {
   return /^[a-zA-Z]+\:\/\//.test(url);
 }
 
-export function getHtmlLoaderFile(htmlFileName: string, scriptsSrcs: string[]) {
-  const scriptsHtml = scriptsSrcs.map((scriptSrc) => {
+export function getHtmlLoaderFile(htmlFileName: string, scriptSrcs: string[]) {
+  const scriptsHtml = scriptSrcs.map((scriptSrc) => {
     return `<script type="module" src="${scriptSrc}"></script>`;
   });
 
