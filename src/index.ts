@@ -1,10 +1,7 @@
 import type { Plugin, RollupOptions, EmittedFile } from "rollup";
 import type { RollupWebExtensionOptions } from "../types";
 import { addInputScriptsToOptionsInput } from "./rollupUtils";
-import ManifestV2 from "./manifestParser/manifestV2";
-import ManifestV3 from "./manifestParser/manifestV3";
 import ManifestParser from "./manifestParser/manifestParser";
-import { getLoaderDirectory } from "./manifestParser/utils";
 import ManifestParserFactory from "./manifestParser/manifestParserFactory";
 
 export default function webExtension(
@@ -59,10 +56,7 @@ export default function webExtension(
         }
 
         this.emitFile(file);
-
-        if (!file.fileName.startsWith(`${getLoaderDirectory()}/`)) {
-          this.addWatchFile(file.fileName);
-        }
+        this.addWatchFile(file.fileName);
       });
       emitQueue = [];
     },

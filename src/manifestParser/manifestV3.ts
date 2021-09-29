@@ -1,7 +1,11 @@
 import fs from "fs";
 import path from "path";
 import ManifestParser, { ParseResult } from "./manifestParser";
-import { getScriptLoaderFile, parseManifestHtmlFile, pipe } from "./utils";
+import {
+  getContentScriptLoaderFile,
+  parseManifestHtmlFile,
+  pipe,
+} from "./utils";
 import type { OutputBundle } from "rollup";
 import { isOutputChunk } from "../rollupUtils";
 
@@ -126,7 +130,7 @@ export default class ManifestV3 implements ManifestParser {
           return;
         }
 
-        const scriptLoaderFile = getScriptLoaderFile(scriptFileName);
+        const scriptLoaderFile = getContentScriptLoaderFile(scriptFileName);
 
         script.js![index] = scriptLoaderFile.fileName;
 

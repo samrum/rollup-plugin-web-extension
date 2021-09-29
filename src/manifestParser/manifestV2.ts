@@ -6,11 +6,11 @@ import ManifestParser, {
   ParseResult,
 } from "./manifestParser";
 import {
-  getScriptLoaderFile,
+  getContentScriptLoaderFile,
   parseManifestHtmlFile,
   pipe,
   isRemoteUrl,
-  getLoaderDirectory,
+  getHtmlLoaderFile,
 } from "./utils";
 import { isOutputChunk } from "../rollupUtils";
 
@@ -69,7 +69,7 @@ export default class ManifestV2 implements ManifestParser {
       return result;
     }
 
-    const htmlScriptElements: string[] = [];
+    const htmlScriptSrcs: string[] = [];
 
     result.manifest.background.scripts.forEach((script) => {
       if (isRemoteUrl(script)) {
@@ -83,22 +83,19 @@ export default class ManifestV2 implements ManifestParser {
 
       result.inputScripts.push([outputFile, script]);
 
-      htmlScriptElements.push(
-        `<script type="module" src="/${outputFile}.js"></script>`
-      );
+      htmlScriptSrcs.push(`/${outputFile}.js`);
     });
 
-    const scriptLoaderHtmlFileName = `${getLoaderDirectory()}/background.html`;
-    const scriptsHtml = htmlScriptElements.join("");
+    const htmlLoaderFile = getHtmlLoaderFile("background.html", htmlScriptSrcs);
 
     result.emitFiles.push({
       type: "asset",
-      fileName: scriptLoaderHtmlFileName,
-      source: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />${scriptsHtml}</head></html>`,
+      fileName: htmlLoaderFile.fileName,
+      source: htmlLoaderFile.source,
     });
 
     delete result.manifest.background.scripts;
-    result.manifest.background.page = scriptLoaderHtmlFileName;
+    result.manifest.background.page = htmlLoaderFile.fileName;
 
     return result;
   }
@@ -159,7 +156,7 @@ export default class ManifestV2 implements ManifestParser {
           return;
         }
 
-        const scriptLoaderFile = getScriptLoaderFile(scriptFileName);
+        const scriptLoaderFile = getContentScriptLoaderFile(scriptFileName);
 
         script.js![index] = scriptLoaderFile.fileName;
 

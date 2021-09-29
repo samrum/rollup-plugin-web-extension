@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import { ParseResult } from "./manifestParser";
 
+const LOADER_DIR = "loader";
+
 export function parseManifestHtmlFile(
   htmlFileName: string
 ): Partial<ParseResult> {
@@ -57,15 +59,22 @@ export function isRemoteUrl(url: string): boolean {
   return /^[a-zA-Z]+\:\/\//.test(url);
 }
 
-export function getScriptLoaderFile(scriptFileName: string) {
+export function getHtmlLoaderFile(htmlFileName: string, scriptsSrcs: string[]) {
+  const scriptsHtml = scriptsSrcs.map((scriptSrc) => {
+    return `<script type="module" src="${scriptSrc}"></script>`;
+  });
+
   return {
-    fileName: `${getLoaderDirectory()}/${scriptFileName}`,
-    source: `(async()=>{await import(chrome.runtime.getURL("${scriptFileName}"))})();`,
+    fileName: `${LOADER_DIR}/${htmlFileName}`,
+    source: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />${scriptsHtml}</head></html>`,
   };
 }
 
-export function getLoaderDirectory() {
-  return "loader";
+export function getContentScriptLoaderFile(scriptFileName: string) {
+  return {
+    fileName: `${LOADER_DIR}/${scriptFileName}`,
+    source: `(async()=>{await import(chrome.runtime.getURL("${scriptFileName}"))})();`,
+  };
 }
 
 export function pipe<T>(
