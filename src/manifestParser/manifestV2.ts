@@ -27,9 +27,9 @@ export default class ManifestV2 implements ManifestParser {
     return pipe(
       this,
       {
+        manifest,
         inputScripts: [],
         emitFiles: [],
-        manifest: manifest,
       },
       this.#parseManifestHtmlFiles,
       this.#parseManifestContentScripts,

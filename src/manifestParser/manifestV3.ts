@@ -14,17 +14,15 @@ interface ManifestV3ParseResult extends ParseResult {
 }
 
 export default class ManifestV3 implements ManifestParser {
-  constructor() {}
-
   async parseManifest(
     manifest: ManifestV3ParseResult["manifest"]
   ): Promise<ManifestV3ParseResult> {
     return pipe(
       this,
       {
+        manifest,
         inputScripts: [],
         emitFiles: [],
-        manifest: manifest,
       },
       this.#parseManifestHtmlFiles,
       this.#parseManifestContentScripts,
