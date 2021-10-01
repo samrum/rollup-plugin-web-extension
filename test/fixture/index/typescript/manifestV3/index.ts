@@ -1,5 +1,4 @@
 export { default as BackgroundServiceWorker } from "./backgroundServiceWorker";
-export { default as ContentCss } from "./contentCss";
 export { default as ContentWithDynamicImport } from "./contentWithDynamicImport";
 export { default as ContentWithChunkedImport } from "./contentWithChunkedImport";
 export { default as ContentWithUnchunkedImport } from "./contentWithUnchunkedImport";
