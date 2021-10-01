@@ -1,7 +1,7 @@
 import {
   validateManifestV2Fixtures,
   validateManifestV3Fixtures,
-} from "./util/fixtureValidation";
+} from "./fixture/fixtureValidation";
 import * as JAVASCRIPT_MANIFESTV2_TESTS from "./fixture/index/javascript/manifestV2";
 import * as JAVASCRIPT_MANIFESTV3_TESTS from "./fixture/index/javascript/manifestV3";
 import * as TYPESCRIPT_MANIFESTV2_TESTS from "./fixture/index/typescript/manifestV2";
