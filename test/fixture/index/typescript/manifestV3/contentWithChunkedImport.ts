@@ -27,32 +27,30 @@ const expectedManifest = {
   ],
   web_accessible_resources: [
     {
-      resources: [`${resourceDir}/content1.js`, "importable-8e1bceda.js"],
+      resources: [`${resourceDir}/content1.js`, "log-12f65221.js"],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      resources: [`${resourceDir}/content2.js`, "importable-8e1bceda.js"],
+      resources: [`${resourceDir}/content2.js`, "log-12f65221.js"],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
 };
 
 const chunkCode = {
-  [`${resourceDir}/content1.js`]: `import { i as importable } from '../../../../../../importable-8e1bceda.js';
+  [`${resourceDir}/content1.js`]: `import { l as log } from '../../../../../../log-12f65221.js';
 
-importable();
-console.log("content");
+log("content");
 `,
-  [`${resourceDir}/content2.js`]: `import { i as importable } from '../../../../../../importable-8e1bceda.js';
+  [`${resourceDir}/content2.js`]: `import { l as log } from '../../../../../../log-12f65221.js';
 
-importable();
-console.log("content2");
+log("content2");
 `,
-  "importable-8e1bceda.js": `function importable() {
-  console.log("importable");
+  "log-12f65221.js": `function log(message) {
+  console.log(message);
 }
 
-export { importable as i };
+export { log as l };
 `,
 };
 

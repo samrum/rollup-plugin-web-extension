@@ -27,33 +27,29 @@ const expectedManifest = {
   ],
   web_accessible_resources: [
     `${resourceDir}/content1.js`,
-    "importable-9863da30.js",
+    "log-3e62c36e.js",
     `${resourceDir}/content2.js`,
   ],
 };
 
 const chunkCode = {
   [`${resourceDir}/content1.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-9863da30.js');
+  const log = await import('../../../../../../log-3e62c36e.js');
 
-  importable();
-
-  console.log("content");
+  log("content");
 })();
 `,
   [`${resourceDir}/content2.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-9863da30.js');
+  const log = await import('../../../../../../log-3e62c36e.js');
 
-  importable();
-
-  console.log("content2");
+  log("content2");
 })();
 `,
-  "importable-9863da30.js": `function importable() {
-  console.log("importable");
+  "log-3e62c36e.js": `function log(message) {
+  console.log(message);
 }
 
-export { importable as default };
+export { log as default };
 `,
 };
 

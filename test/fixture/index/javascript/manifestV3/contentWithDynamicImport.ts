@@ -27,11 +27,11 @@ const expectedManifest = {
   ],
   web_accessible_resources: [
     {
-      resources: [`${resourceDir}/content1.js`, "importable-8364a465.js"],
+      resources: [`${resourceDir}/content1.js`, "log-b7ff7a24.js"],
       matches: ["https://*/*", "http://*/*"],
     },
     {
-      resources: [`${resourceDir}/content2.js`, "importable-8364a465.js"],
+      resources: [`${resourceDir}/content2.js`, "log-b7ff7a24.js"],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -39,26 +39,22 @@ const expectedManifest = {
 
 const chunkCode = {
   [`${resourceDir}/content1.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-8364a465.js');
+  const log = await import('../../../../../../log-b7ff7a24.js');
 
-  importable();
-
-  console.log("content");
+  log("content");
 })();
 `,
   [`${resourceDir}/content2.js`]: `(async () => {
-  const importable = await import('../../../../../../importable-8364a465.js');
+  const log = await import('../../../../../../log-b7ff7a24.js');
 
-  importable();
-
-  console.log("content2");
+  log("content2");
 })();
 `,
-  "importable-8364a465.js": `function importable() {
-  console.log("importable");
+  "log-b7ff7a24.js": `function log(message) {
+  console.log(message);
 }
 
-export { importable as default };
+export { log as default };
 `,
 };
 

@@ -20,12 +20,11 @@ const expectedManifest = {
 };
 
 const chunkCode = {
-  [`${resourceDir}/content.js`]: `function importable() {
-  console.log("importable");
+  [`${resourceDir}/content.js`]: `function log(message) {
+  console.log(message);
 }
 
-importable();
-console.log("content");
+log("content");
 `,
 };
 

@@ -1,4 +1,3 @@
-import importable from "./../shared/importable";
+import log from "./../shared/log";
 
-importable();
-console.log("content2");
+log("content2");

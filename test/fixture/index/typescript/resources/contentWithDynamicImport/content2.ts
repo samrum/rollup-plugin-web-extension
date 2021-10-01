@@ -1,7 +1,5 @@
 (async () => {
-  const importable = await import("./../shared/importable");
+  const log = await import("./../shared/log");
 
-  importable();
-
-  console.log("content2");
+  log("content2");
 })();

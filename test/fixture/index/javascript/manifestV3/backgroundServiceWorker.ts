@@ -10,6 +10,7 @@ const inputManifest = {
 const expectedManifest = {
   background: {
     service_worker: `serviceWorker.js`,
+    type: "module",
   },
 };
 

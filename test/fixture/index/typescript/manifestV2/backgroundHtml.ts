@@ -15,12 +15,11 @@ const expectedManifest = {
 };
 
 const chunkCode = {
-  [`${resourceDir}/background.js`]: `function importable() {
-  console.log("importable");
+  [`${resourceDir}/background.js`]: `function log(message) {
+  console.log(message);
 }
 
-importable();
-console.log("background");
+log("background");
 `,
 };
 

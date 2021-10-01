@@ -13,12 +13,11 @@ const expectedManifest = {
 };
 
 const chunkCode = {
-  [`${resourceDir}/options.js`]: `function importable() {
-  console.log("importable");
+  [`${resourceDir}/options.js`]: `function log(message) {
+  console.log(message);
 }
 
-importable();
-console.log("options");
+log("options");
 `,
 };
 

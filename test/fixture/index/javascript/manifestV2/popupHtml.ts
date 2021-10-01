@@ -13,12 +13,11 @@ const expectedManifest = {
 };
 
 const chunkCode = {
-  [`${resourceDir}/popup.js`]: `function importable() {
-  console.log("importable");
+  [`${resourceDir}/popup.js`]: `function log(message) {
+  console.log(message);
 }
 
-importable();
-console.log("popup");
+log("popup");
 `,
 };
 
