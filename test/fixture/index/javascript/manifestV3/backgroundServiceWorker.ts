@@ -7,7 +7,7 @@ const inputManifest = {
   },
 };
 
-const expectedManifest = {
+const expectedManifest: Partial<chrome.runtime.ManifestV3> = {
   background: {
     service_worker: `serviceWorker.js`,
     type: "module",
