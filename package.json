@@ -49,7 +49,6 @@
   "devDependencies": {
     "@rollup/plugin-sucrase": "^4.0.0",
     "@rollup/plugin-typescript": "^8.2.5",
-    "@types/chrome": "^0.0.157",
     "@types/jest": "^27.0.1",
     "@types/node": "^16.4.9",
     "husky": ">=6",
@@ -67,5 +66,8 @@
   },
   "lint-staged": {
     "*.{js,ts,css,md}": "prettier --write"
+  },
+  "dependencies": {
+    "@types/chrome": "^0.0.158"
   }
 }
