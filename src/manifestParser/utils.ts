@@ -77,6 +77,13 @@ export function getContentScriptLoaderFile(scriptFileName: string) {
   };
 }
 
+export function getServiceWorkerLoaderFile(serviceWorkerFileName: string) {
+  return {
+    fileName: `serviceWorkerLoader.js`,
+    source: `import "/${serviceWorkerFileName}";`,
+  };
+}
+
 export function pipe<T>(
   context: any,
   initialValue: T,

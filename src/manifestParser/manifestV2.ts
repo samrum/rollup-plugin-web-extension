@@ -41,13 +41,11 @@ export default class ManifestV2 implements ManifestParser {
     result: ManifestV2ParseResult
   ): ManifestV2ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
-      script.js?.forEach((scriptFile, index) => {
+      script.js?.forEach((scriptFile) => {
         const { dir, name } = path.parse(scriptFile);
         const outputFile = dir ? `${dir}/${name}` : name;
 
         result.inputScripts.push([outputFile, scriptFile]);
-
-        script.js![index] = `${outputFile}.js`;
       });
 
       script.css?.forEach((cssFile) => {
@@ -147,16 +145,28 @@ export default class ManifestV2 implements ManifestParser {
 
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
-        const bundleFile = bundle[scriptFileName];
+        const [, bundleFile] =
+          Object.entries(bundle).find(([, output]) => {
+            if (!isOutputChunk(output)) {
+              return false;
+            }
 
-        if (
-          !isOutputChunk(bundleFile) ||
-          (!bundleFile.imports.length && !bundleFile.dynamicImports.length)
-        ) {
+            return output.facadeModuleId?.endsWith(scriptFileName);
+          }) || [];
+
+        if (!bundleFile || !isOutputChunk(bundleFile)) {
           return;
         }
 
-        const scriptLoaderFile = getContentScriptLoaderFile(scriptFileName);
+        if (!bundleFile.imports.length && !bundleFile.dynamicImports.length) {
+          script.js![index] = bundleFile.fileName;
+
+          return;
+        }
+
+        const scriptLoaderFile = getContentScriptLoaderFile(
+          bundleFile.fileName
+        );
 
         script.js![index] = scriptLoaderFile.fileName;
 
@@ -166,7 +176,7 @@ export default class ManifestV2 implements ManifestParser {
           source: scriptLoaderFile.source,
         });
 
-        webAccessibleResources.add(scriptFileName);
+        webAccessibleResources.add(bundleFile.fileName);
 
         bundleFile.imports.forEach(
           webAccessibleResources.add,
