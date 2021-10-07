@@ -19,8 +19,12 @@
     "lint": "prettier --write --loglevel warn .",
     "test": "jest",
     "prepare": "husky install",
-    "prerelease": "pnpm test && pnpm build",
     "release": "standard-version --sign"
+  },
+  "standard-version": {
+    "scripts": {
+      "prerelease": "pnpm test && pnpm build"
+    }
   },
   "repository": {
     "type": "git",
