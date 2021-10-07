@@ -1,6 +1,6 @@
 {
   "name": "@samrum/rollup-plugin-web-extension",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "A rollup plugin for generating cross browser platform, ES module based web extensions",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
