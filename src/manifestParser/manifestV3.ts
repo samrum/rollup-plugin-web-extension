@@ -3,6 +3,7 @@ import path from "path";
 import ManifestParser, { ParseResult } from "./manifestParser";
 import {
   getContentScriptLoaderFile,
+  getServiceWorkerLoaderFile,
   parseManifestHtmlFile,
   pipe,
 } from "./utils";
@@ -57,13 +58,11 @@ export default class ManifestV3 implements ManifestParser {
     result: ManifestV3ParseResult
   ): ManifestV3ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
-      script.js?.forEach((scriptFile, index) => {
+      script.js?.forEach((scriptFile) => {
         const { dir, name } = path.parse(scriptFile);
         const outputFile = dir ? `${dir}/${name}` : name;
 
         result.inputScripts.push([outputFile, scriptFile]);
-
-        script.js![index] = `${outputFile}.js`;
       });
 
       script.css?.forEach((cssFile) => {
@@ -87,11 +86,11 @@ export default class ManifestV3 implements ManifestParser {
 
     const serviceWorkerScript = result.manifest.background?.service_worker;
 
-    const { name } = path.parse(serviceWorkerScript);
+    const { dir, name } = path.parse(serviceWorkerScript);
+    const outputFile = dir ? `${dir}/${name}` : name;
 
-    result.inputScripts.push([name, serviceWorkerScript]);
+    result.inputScripts.push([outputFile, serviceWorkerScript]);
 
-    result.manifest.background.service_worker = `${name}.js`;
     result.manifest.background.type = "module";
 
     return result;
@@ -101,16 +100,55 @@ export default class ManifestV3 implements ManifestParser {
     bundle: OutputBundle,
     manifest: ManifestV3ParseResult["manifest"]
   ): Promise<ManifestV3ParseResult> {
-    let result = {
+    let result: ManifestV3ParseResult = {
       inputScripts: [],
       emitFiles: [],
       manifest: manifest,
     };
 
-    return this.#parseBundleForDynamicContentScripts(result, bundle);
+    result = this.#parseBundleServiceWorker(result, bundle);
+    result = this.#parseBundleContentScripts(result, bundle);
+
+    return result;
   }
 
-  #parseBundleForDynamicContentScripts(
+  #parseBundleServiceWorker(
+    result: ManifestV3ParseResult,
+    bundle: OutputBundle
+  ): ManifestV3ParseResult {
+    const serviceWorkerFileName = result.manifest.background?.service_worker;
+
+    if (!serviceWorkerFileName) {
+      return result;
+    }
+
+    const [, bundleFile] =
+      Object.entries(bundle).find(([, output]) => {
+        if (!isOutputChunk(output)) {
+          return false;
+        }
+
+        return output.facadeModuleId?.endsWith(serviceWorkerFileName);
+      }) || [];
+
+    if (!bundleFile) {
+      throw new Error("Failed to build service worker");
+    }
+
+    const serviceWorkerLoader = getServiceWorkerLoaderFile(bundleFile.fileName);
+
+    result.manifest.background!.service_worker = serviceWorkerLoader.fileName;
+
+    result.emitFiles.push({
+      type: "asset",
+      fileName: serviceWorkerLoader.fileName,
+      source: serviceWorkerLoader.source,
+    });
+
+    return result;
+  }
+
+  #parseBundleContentScripts(
     result: ManifestV3ParseResult,
     bundle: OutputBundle
   ): ManifestV3ParseResult {
@@ -120,16 +158,28 @@ export default class ManifestV3 implements ManifestParser {
 
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
-        const bundleFile = bundle[scriptFileName];
+        const [, bundleFile] =
+          Object.entries(bundle).find(([, output]) => {
+            if (!isOutputChunk(output)) {
+              return false;
+            }
 
-        if (
-          !isOutputChunk(bundleFile) ||
-          (!bundleFile.imports.length && !bundleFile.dynamicImports.length)
-        ) {
+            return output.facadeModuleId?.endsWith(scriptFileName);
+          }) || [];
+
+        if (!bundleFile || !isOutputChunk(bundleFile)) {
           return;
         }
 
-        const scriptLoaderFile = getContentScriptLoaderFile(scriptFileName);
+        if (!bundleFile.imports.length && !bundleFile.dynamicImports.length) {
+          script.js![index] = bundleFile.fileName;
+
+          return;
+        }
+
+        const scriptLoaderFile = getContentScriptLoaderFile(
+          bundleFile.fileName
+        );
 
         script.js![index] = scriptLoaderFile.fileName;
 
@@ -141,7 +191,7 @@ export default class ManifestV3 implements ManifestParser {
 
         const resources = new Set<string>();
 
-        resources.add(scriptFileName);
+        resources.add(bundleFile.fileName);
 
         bundleFile.imports.forEach(resources.add, resources);
         bundleFile.dynamicImports.forEach(resources.add, resources);

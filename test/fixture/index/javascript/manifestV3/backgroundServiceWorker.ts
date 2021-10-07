@@ -9,16 +9,18 @@ const inputManifest = {
 
 const expectedManifest: Partial<chrome.runtime.ManifestV3> = {
   background: {
-    service_worker: `serviceWorker.js`,
+    service_worker: `serviceWorkerLoader.js`,
     type: "module",
   },
 };
 
 const chunkCode = {
-  [`serviceWorker.js`]: `console.log("serviceWorker");\n`,
+  [`${resourceDir}/serviceWorker.js`]: `console.log("serviceWorker");\n`,
 };
 
-const assetCode = {};
+const assetCode = {
+  ["serviceWorkerLoader.js"]: `import "/${`${resourceDir}/serviceWorker.js`}";`,
+};
 
 export default {
   inputManifest,
