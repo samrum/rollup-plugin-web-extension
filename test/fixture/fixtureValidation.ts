@@ -58,10 +58,9 @@ async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
     ...assetCode,
   };
 
-  // Number of output files should match expected output files defined in fixture
-  expect(output.length).toEqual(
-    Object.keys(chunkCode).length + Object.keys(assetCode).length
-  );
+  const numberOfOutputFiles = output.length;
+  const numberOfExpectedFiles =
+    Object.keys(chunkCode).length + Object.keys(assetCode).length;
 
   output.forEach((file) => {
     if (isOutputChunk(file)) {
@@ -74,6 +73,12 @@ async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
       expect(file.code).toEqual(chunkCode[file.fileName]);
       delete chunkCode[file.fileName];
     } else {
+      if (!assetCode[file.fileName]) {
+        throw new Error(
+          `Missing expected output asset definition for: ${file.fileName}`
+        );
+      }
+
       expect(file.source).toEqual(assetCode[file.fileName]);
       delete assetCode[file.fileName];
     }
@@ -81,6 +86,9 @@ async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
 
   expect(Object.keys(chunkCode)).toEqual([]);
   expect(Object.keys(assetCode)).toEqual([]);
+
+  // Number of output files should match expected output files defined in fixture
+  expect(numberOfOutputFiles).toEqual(numberOfExpectedFiles);
 }
 
 export async function validateManifestV2Fixtures(fixtures: {
