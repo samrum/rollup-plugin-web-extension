@@ -44,11 +44,7 @@ export default class ManifestV3 implements ManifestParser {
         return;
       }
 
-      const { inputScripts = [], emitFiles = [] } =
-        parseManifestHtmlFile(htmlFileName);
-
-      result.inputScripts = result.inputScripts.concat(inputScripts);
-      result.emitFiles = result.emitFiles.concat(emitFiles);
+      parseManifestHtmlFile(htmlFileName, result);
     });
 
     return result;

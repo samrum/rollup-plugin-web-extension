@@ -112,11 +112,7 @@ export default class ManifestV2 implements ManifestParser {
         return;
       }
 
-      const { inputScripts = [], emitFiles = [] } =
-        parseManifestHtmlFile(htmlFileName);
-
-      result.inputScripts = result.inputScripts.concat(inputScripts);
-      result.emitFiles = result.emitFiles.concat(emitFiles);
+      parseManifestHtmlFile(htmlFileName, result);
     });
 
     return result;
@@ -132,10 +128,10 @@ export default class ManifestV2 implements ManifestParser {
       manifest: manifest,
     };
 
-    return this.#parseBundleForDynamicContentScripts(result, bundle);
+    return this.#parseBundleContentScripts(result, bundle);
   }
 
-  #parseBundleForDynamicContentScripts(
+  #parseBundleContentScripts(
     result: ManifestV2ParseResult,
     bundle: OutputBundle
   ): ManifestV2ParseResult {

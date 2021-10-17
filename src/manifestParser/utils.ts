@@ -5,13 +5,9 @@ import { ParseResult } from "./manifestParser";
 const LOADER_DIR = "loader";
 
 export function parseManifestHtmlFile(
-  htmlFileName: string
-): Partial<ParseResult> {
-  const result: Partial<ParseResult> = {
-    inputScripts: [],
-    emitFiles: [],
-  };
-
+  htmlFileName: string,
+  result: ParseResult
+): ParseResult {
   let html = fs.readFileSync(htmlFileName, "utf-8");
 
   const scriptRegExp = new RegExp('<script[^>]*src="(.*)"[^>]*>', "gi");
