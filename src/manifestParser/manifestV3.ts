@@ -39,6 +39,14 @@ export default class ManifestV3 implements ManifestParser {
       result.manifest.options_ui?.page,
     ];
 
+    (result.manifest.web_accessible_resources ?? []).forEach(({ resources }) =>
+      resources
+        .filter((resource) => resource.endsWith(".html"))
+        .forEach((html) => {
+          htmlFileNames.push(html);
+        })
+    );
+
     htmlFileNames.forEach((htmlFileName) => {
       if (!htmlFileName) {
         return;

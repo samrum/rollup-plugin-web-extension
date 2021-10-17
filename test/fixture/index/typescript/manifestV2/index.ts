@@ -6,3 +6,4 @@ export { default as ContentWithUnchunkedImport } from "./contentWithUnchunkedImp
 export { default as ContentWithNoImports } from "./contentWithNoImports";
 export { default as OptionsHtml } from "./optionsHtml";
 export { default as PopupHtml } from "./popupHtml";
+export { default as WebAccessibleResourceHtml } from "./webAccessibleResourceHtml";

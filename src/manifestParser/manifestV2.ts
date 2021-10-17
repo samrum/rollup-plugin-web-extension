@@ -105,6 +105,9 @@ export default class ManifestV2 implements ManifestParser {
       result.manifest.background?.page,
       result.manifest.browser_action?.default_popup,
       result.manifest.options_ui?.page,
+      ...(result.manifest.web_accessible_resources?.filter((resource) =>
+        resource.endsWith(".html")
+      ) ?? []),
     ];
 
     htmlFileNames.forEach((htmlFileName) => {
