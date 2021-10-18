@@ -1,13 +1,19 @@
 import fs from "fs";
 import path from "path";
+import { OutputBundle, OutputChunk } from "rollup";
+import { isOutputChunk } from "../rollupUtils";
 import { ParseResult } from "./manifestParser";
 
 const LOADER_DIR = "loader";
 
 export function parseManifestHtmlFile(
-  htmlFileName: string,
+  htmlFileName: string | undefined,
   result: ParseResult
 ): ParseResult {
+  if (!htmlFileName) {
+    return result;
+  }
+
   let html = fs.readFileSync(htmlFileName, "utf-8");
 
   const scriptRegExp = new RegExp('<script[^>]*src="(.*)"[^>]*>', "gi");
@@ -88,5 +94,37 @@ export function pipe<T>(
   return fns.reduce(
     (previousValue, fn) => fn.call(context, previousValue),
     initialValue
+  );
+}
+
+export function getRollupOutputFile(inputFileName: string): string {
+  const { dir, name } = path.parse(inputFileName);
+
+  return dir ? `${dir}/${name}` : name;
+}
+
+export function findBundleOutputChunkForScript(
+  bundle: OutputBundle,
+  scriptFileName: string
+): OutputChunk | null {
+  const [, bundleFile] =
+    Object.entries(bundle).find(([, output]) => {
+      if (!isOutputChunk(output)) {
+        return false;
+      }
+
+      return output.facadeModuleId?.endsWith(scriptFileName);
+    }) || [];
+
+  if (!bundleFile || !isOutputChunk(bundleFile)) {
+    return null;
+  }
+
+  return bundleFile;
+}
+
+export function outputChunkHasImports(outputChunk: OutputChunk): boolean {
+  return Boolean(
+    outputChunk.imports.length || outputChunk.dynamicImports.length
   );
 }

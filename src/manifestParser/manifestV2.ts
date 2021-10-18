@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import type { OutputBundle } from "rollup";
 import ManifestParser, {
   ManifestParserConfig,
@@ -11,8 +10,10 @@ import {
   pipe,
   isRemoteUrl,
   getHtmlLoaderFile,
+  getRollupOutputFile,
+  findBundleOutputChunkForScript,
+  outputChunkHasImports,
 } from "./utils";
-import { isOutputChunk } from "../rollupUtils";
 
 interface ManifestV2ParseResult extends ParseResult {
   manifest: chrome.runtime.ManifestV2;
@@ -42,8 +43,7 @@ export default class ManifestV2 implements ManifestParser {
   ): ManifestV2ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile) => {
-        const { dir, name } = path.parse(scriptFile);
-        const outputFile = dir ? `${dir}/${name}` : name;
+        const outputFile = getRollupOutputFile(scriptFile);
 
         result.inputScripts.push([outputFile, scriptFile]);
       });
@@ -76,8 +76,7 @@ export default class ManifestV2 implements ManifestParser {
         );
       }
 
-      const { dir, name } = path.parse(script);
-      const outputFile = dir ? `${dir}/${name}` : name;
+      const outputFile = getRollupOutputFile(script);
 
       result.inputScripts.push([outputFile, script]);
 
@@ -107,13 +106,9 @@ export default class ManifestV2 implements ManifestParser {
       result.manifest.options_ui?.page,
     ];
 
-    htmlFileNames.forEach((htmlFileName) => {
-      if (!htmlFileName) {
-        return;
-      }
-
-      parseManifestHtmlFile(htmlFileName, result);
-    });
+    htmlFileNames.forEach((htmlFileName) =>
+      parseManifestHtmlFile(htmlFileName, result)
+    );
 
     return result;
   }
@@ -141,27 +136,22 @@ export default class ManifestV2 implements ManifestParser {
 
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
-        const [, bundleFile] =
-          Object.entries(bundle).find(([, output]) => {
-            if (!isOutputChunk(output)) {
-              return false;
-            }
-
-            return output.facadeModuleId?.endsWith(scriptFileName);
-          }) || [];
-
-        if (!bundleFile || !isOutputChunk(bundleFile)) {
+        const outputChunk = findBundleOutputChunkForScript(
+          bundle,
+          scriptFileName
+        );
+        if (!outputChunk) {
           return;
         }
 
-        if (!bundleFile.imports.length && !bundleFile.dynamicImports.length) {
-          script.js![index] = bundleFile.fileName;
+        if (!outputChunkHasImports(outputChunk)) {
+          script.js![index] = outputChunk.fileName;
 
           return;
         }
 
         const scriptLoaderFile = getContentScriptLoaderFile(
-          bundleFile.fileName
+          outputChunk.fileName
         );
 
         script.js![index] = scriptLoaderFile.fileName;
@@ -172,13 +162,13 @@ export default class ManifestV2 implements ManifestParser {
           source: scriptLoaderFile.source,
         });
 
-        webAccessibleResources.add(bundleFile.fileName);
+        webAccessibleResources.add(outputChunk.fileName);
 
-        bundleFile.imports.forEach(
+        outputChunk.imports.forEach(
           webAccessibleResources.add,
           webAccessibleResources
         );
-        bundleFile.dynamicImports.forEach(
+        outputChunk.dynamicImports.forEach(
           webAccessibleResources.add,
           webAccessibleResources
         );
