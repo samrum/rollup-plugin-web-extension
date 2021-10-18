@@ -13,7 +13,7 @@ Some minimum supported browsers:
 
 |          | Manifest V2   | Manifest V3 |
 | -------- | ------------- | ----------- |
-| Chromium | 83 (Untested) | 91          |
+| Chromium | 63 (Untested) | 91          |
 | Firefox  | 89            | N/A         |
 
 # Usage
