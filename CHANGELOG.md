@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.9.3](https://github.com/samrum/rollup-plugin-web-extension/compare/v0.9.2...v0.9.3) (2021-10-18)
+
+### Features
+
+- add support for parsing web accessible resources html files ([#4](https://github.com/samrum/rollup-plugin-web-extension/issues/4)) ([13f2ac0](https://github.com/samrum/rollup-plugin-web-extension/commit/13f2ac049b92dbc5b8a41d0e1c833d794351ddcc))
+
 ### [0.9.2](https://github.com/samrum/rollup-plugin-web-extension/compare/v0.9.1...v0.9.2) (2021-10-07)
 
 ### Bug Fixes
