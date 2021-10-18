@@ -1,14 +1,15 @@
 import fs from "fs";
-import path from "path";
 import ManifestParser, { ParseResult } from "./manifestParser";
 import {
+  findBundleOutputChunkForScript,
   getContentScriptLoaderFile,
+  getRollupOutputFile,
   getServiceWorkerLoaderFile,
+  outputChunkHasImports,
   parseManifestHtmlFile,
   pipe,
 } from "./utils";
 import type { OutputBundle } from "rollup";
-import { isOutputChunk } from "../rollupUtils";
 
 interface ManifestV3ParseResult extends ParseResult {
   manifest: chrome.runtime.ManifestV3;
@@ -47,17 +48,9 @@ export default class ManifestV3 implements ManifestParser {
         })
     );
 
-    htmlFileNames.forEach((htmlFileName) => {
-      if (!htmlFileName) {
-        return;
-      }
-
-      const { inputScripts = [], emitFiles = [] } =
-        parseManifestHtmlFile(htmlFileName);
-
-      result.inputScripts = result.inputScripts.concat(inputScripts);
-      result.emitFiles = result.emitFiles.concat(emitFiles);
-    });
+    htmlFileNames.forEach((htmlFileName) =>
+      parseManifestHtmlFile(htmlFileName, result)
+    );
 
     return result;
   }
@@ -67,8 +60,7 @@ export default class ManifestV3 implements ManifestParser {
   ): ManifestV3ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile) => {
-        const { dir, name } = path.parse(scriptFile);
-        const outputFile = dir ? `${dir}/${name}` : name;
+        const outputFile = getRollupOutputFile(scriptFile);
 
         result.inputScripts.push([outputFile, scriptFile]);
       });
@@ -94,8 +86,7 @@ export default class ManifestV3 implements ManifestParser {
 
     const serviceWorkerScript = result.manifest.background?.service_worker;
 
-    const { dir, name } = path.parse(serviceWorkerScript);
-    const outputFile = dir ? `${dir}/${name}` : name;
+    const outputFile = getRollupOutputFile(serviceWorkerScript);
 
     result.inputScripts.push([outputFile, serviceWorkerScript]);
 
@@ -130,20 +121,18 @@ export default class ManifestV3 implements ManifestParser {
       return result;
     }
 
-    const [, bundleFile] =
-      Object.entries(bundle).find(([, output]) => {
-        if (!isOutputChunk(output)) {
-          return false;
-        }
+    const outputChunk = findBundleOutputChunkForScript(
+      bundle,
+      serviceWorkerFileName
+    );
 
-        return output.facadeModuleId?.endsWith(serviceWorkerFileName);
-      }) || [];
-
-    if (!bundleFile) {
+    if (!outputChunk) {
       throw new Error("Failed to build service worker");
     }
 
-    const serviceWorkerLoader = getServiceWorkerLoaderFile(bundleFile.fileName);
+    const serviceWorkerLoader = getServiceWorkerLoaderFile(
+      outputChunk.fileName
+    );
 
     result.manifest.background!.service_worker = serviceWorkerLoader.fileName;
 
@@ -166,27 +155,22 @@ export default class ManifestV3 implements ManifestParser {
 
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
-        const [, bundleFile] =
-          Object.entries(bundle).find(([, output]) => {
-            if (!isOutputChunk(output)) {
-              return false;
-            }
-
-            return output.facadeModuleId?.endsWith(scriptFileName);
-          }) || [];
-
-        if (!bundleFile || !isOutputChunk(bundleFile)) {
+        const outputChunk = findBundleOutputChunkForScript(
+          bundle,
+          scriptFileName
+        );
+        if (!outputChunk) {
           return;
         }
 
-        if (!bundleFile.imports.length && !bundleFile.dynamicImports.length) {
-          script.js![index] = bundleFile.fileName;
+        if (!outputChunkHasImports(outputChunk)) {
+          script.js![index] = outputChunk.fileName;
 
           return;
         }
 
         const scriptLoaderFile = getContentScriptLoaderFile(
-          bundleFile.fileName
+          outputChunk.fileName
         );
 
         script.js![index] = scriptLoaderFile.fileName;
@@ -199,10 +183,10 @@ export default class ManifestV3 implements ManifestParser {
 
         const resources = new Set<string>();
 
-        resources.add(bundleFile.fileName);
+        resources.add(outputChunk.fileName);
 
-        bundleFile.imports.forEach(resources.add, resources);
-        bundleFile.dynamicImports.forEach(resources.add, resources);
+        outputChunk.imports.forEach(resources.add, resources);
+        outputChunk.dynamicImports.forEach(resources.add, resources);
 
         webAccessibleResources.add({
           resources: Array.from(resources),
