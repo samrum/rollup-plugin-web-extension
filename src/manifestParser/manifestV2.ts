@@ -13,6 +13,7 @@ import {
   getRollupOutputFile,
   findBundleOutputChunkForScript,
   outputChunkHasImports,
+  isSingleHtmlFilename,
 } from "./utils";
 
 interface ManifestV2ParseResult extends ParseResult {
@@ -36,6 +37,25 @@ export default class ManifestV2 implements ManifestParser {
       this.#parseManifestContentScripts,
       this.#parseManifestBackgroundScripts
     );
+  }
+
+  #parseManifestHtmlFiles(
+    result: ManifestV2ParseResult
+  ): ManifestV2ParseResult {
+    const htmlFileNames: (string | undefined)[] = [
+      result.manifest.background?.page,
+      result.manifest.browser_action?.default_popup,
+      result.manifest.options_ui?.page,
+      ...(result.manifest.web_accessible_resources ?? []).filter(
+        isSingleHtmlFilename
+      ),
+    ];
+
+    htmlFileNames.forEach((htmlFileName) =>
+      parseManifestHtmlFile(htmlFileName, result)
+    );
+
+    return result;
   }
 
   #parseManifestContentScripts(
@@ -93,22 +113,6 @@ export default class ManifestV2 implements ManifestParser {
 
     delete result.manifest.background.scripts;
     result.manifest.background.page = htmlLoaderFile.fileName;
-
-    return result;
-  }
-
-  #parseManifestHtmlFiles(
-    result: ManifestV2ParseResult
-  ): ManifestV2ParseResult {
-    const htmlFileNames: (string | undefined)[] = [
-      result.manifest.background?.page,
-      result.manifest.browser_action?.default_popup,
-      result.manifest.options_ui?.page,
-    ];
-
-    htmlFileNames.forEach((htmlFileName) =>
-      parseManifestHtmlFile(htmlFileName, result)
-    );
 
     return result;
   }
