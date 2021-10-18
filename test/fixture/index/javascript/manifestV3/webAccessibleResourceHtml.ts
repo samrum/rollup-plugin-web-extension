@@ -4,7 +4,11 @@ const resourceDir =
 const inputManifest = {
   web_accessible_resources: [
     {
-      resources: [`${resourceDir}/webAccessibleResource.html`],
+      resources: [
+        `${resourceDir}/webAccessibleResource.html`,
+        `unhandled/*.html`,
+        `*.html`,
+      ],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
@@ -13,7 +17,11 @@ const inputManifest = {
 const expectedManifest = {
   web_accessible_resources: [
     {
-      resources: [`${resourceDir}/webAccessibleResource.html`],
+      resources: [
+        `${resourceDir}/webAccessibleResource.html`,
+        `unhandled/*.html`,
+        `*.html`,
+      ],
       matches: ["https://*/*", "http://*/*"],
     },
   ],

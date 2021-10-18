@@ -5,6 +5,7 @@ import {
   getContentScriptLoaderFile,
   getRollupOutputFile,
   getServiceWorkerLoaderFile,
+  isSingleHtmlFilename,
   outputChunkHasImports,
   parseManifestHtmlFile,
   pipe,
@@ -41,11 +42,9 @@ export default class ManifestV3 implements ManifestParser {
     ];
 
     (result.manifest.web_accessible_resources ?? []).forEach(({ resources }) =>
-      resources
-        .filter((resource) => resource.endsWith(".html"))
-        .forEach((html) => {
-          htmlFileNames.push(html);
-        })
+      resources.filter(isSingleHtmlFilename).forEach((html) => {
+        htmlFileNames.push(html);
+      })
     );
 
     htmlFileNames.forEach((htmlFileName) =>

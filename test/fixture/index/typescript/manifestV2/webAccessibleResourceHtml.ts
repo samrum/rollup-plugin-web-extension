@@ -2,11 +2,19 @@ const resourceDir =
   "test/fixture/index/typescript/resources/webAccessibleResourceHtml";
 
 const inputManifest = {
-  web_accessible_resources: [`${resourceDir}/webAccessibleResource.html`],
+  web_accessible_resources: [
+    `${resourceDir}/webAccessibleResource.html`,
+    `unhandled/*.html`,
+    `*.html`,
+  ],
 };
 
 const expectedManifest = {
-  web_accessible_resources: [`${resourceDir}/webAccessibleResource.html`],
+  web_accessible_resources: [
+    `${resourceDir}/webAccessibleResource.html`,
+    `unhandled/*.html`,
+    `*.html`,
+  ],
 };
 
 const chunkCode = {

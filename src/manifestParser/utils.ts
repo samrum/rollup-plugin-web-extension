@@ -128,3 +128,7 @@ export function outputChunkHasImports(outputChunk: OutputChunk): boolean {
     outputChunk.imports.length || outputChunk.dynamicImports.length
   );
 }
+
+export function isSingleHtmlFilename(fileName: string): boolean {
+  return /[^*]+.html$/.test(fileName);
+}
