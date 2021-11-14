@@ -1,4 +1,4 @@
-import { addInputScriptsToOptionsInput } from "./../src/rollupUtils";
+import { addInputScriptsToOptionsInput } from "./../../src/utils/rollup";
 
 describe("Rollup Utils", () => {
   describe("addInputScriptsToOptionsInput", () => {

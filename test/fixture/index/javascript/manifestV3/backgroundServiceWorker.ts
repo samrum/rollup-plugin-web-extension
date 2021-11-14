@@ -19,7 +19,7 @@ const chunkCode = {
 };
 
 const assetCode = {
-  ["serviceWorkerLoader.js"]: `import "/${`${resourceDir}/serviceWorker.js`}";`,
+  ["webExtensionServiceWorker.js"]: `import "/${`${resourceDir}/serviceWorker.js`}";`,
 };
 
 export default {

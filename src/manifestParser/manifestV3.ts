@@ -2,15 +2,17 @@ import fs from "fs";
 import ManifestParser, { ParseResult } from "./manifestParser";
 import {
   findBundleOutputChunkForScript,
-  getContentScriptLoaderFile,
-  getRollupOutputFile,
-  getServiceWorkerLoaderFile,
+  getNameFromFileName,
   isSingleHtmlFilename,
   outputChunkHasImports,
   parseManifestHtmlFile,
   pipe,
 } from "./utils";
 import type { OutputBundle } from "rollup";
+import {
+  getContentScriptLoaderFile,
+  getServiceWorkerLoaderFile,
+} from "../utils/loader";
 
 interface ManifestV3ParseResult extends ParseResult {
   manifest: chrome.runtime.ManifestV3;
@@ -59,7 +61,7 @@ export default class ManifestV3 implements ManifestParser {
   ): ManifestV3ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile) => {
-        const outputFile = getRollupOutputFile(scriptFile);
+        const outputFile = getNameFromFileName(scriptFile);
 
         result.inputScripts.push([outputFile, scriptFile]);
       });
@@ -85,7 +87,7 @@ export default class ManifestV3 implements ManifestParser {
 
     const serviceWorkerScript = result.manifest.background?.service_worker;
 
-    const outputFile = getRollupOutputFile(serviceWorkerScript);
+    const outputFile = getNameFromFileName(serviceWorkerScript);
 
     result.inputScripts.push([outputFile, serviceWorkerScript]);
 

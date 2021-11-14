@@ -1,4 +1,4 @@
-import type { InputOptions, OutputAsset, OutputChunk } from "rollup";
+import type { InputOptions } from "rollup";
 
 export function addInputScriptsToOptionsInput(
   inputScripts: [string, string][],
@@ -37,10 +37,4 @@ function getOptionsInputAsObject(input: InputOptions["input"]): {
   }
 
   return input ?? {};
-}
-
-export function isOutputChunk(
-  bundleFile: OutputAsset | OutputChunk
-): bundleFile is OutputChunk {
-  return "imports" in bundleFile;
 }

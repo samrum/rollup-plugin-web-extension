@@ -1,16 +1,18 @@
 import fs from "fs";
 import type { OutputBundle } from "rollup";
+import {
+  getContentScriptLoaderFile,
+  getScriptHtmlLoaderFile,
+} from "../utils/loader";
+import { setVirtualModule } from "../utils/virtualModule";
 import ManifestParser, {
   ManifestParserConfig,
   ParseResult,
 } from "./manifestParser";
 import {
-  getContentScriptLoaderFile,
   parseManifestHtmlFile,
   pipe,
-  isRemoteUrl,
-  getHtmlLoaderFile,
-  getRollupOutputFile,
+  getNameFromFileName,
   findBundleOutputChunkForScript,
   outputChunkHasImports,
   isSingleHtmlFilename,
@@ -63,7 +65,7 @@ export default class ManifestV2 implements ManifestParser {
   ): ManifestV2ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile) => {
-        const outputFile = getRollupOutputFile(scriptFile);
+        const outputFile = getNameFromFileName(scriptFile);
 
         result.inputScripts.push([outputFile, scriptFile]);
       });
@@ -87,29 +89,16 @@ export default class ManifestV2 implements ManifestParser {
       return result;
     }
 
-    const htmlScriptSrcs: string[] = [];
+    const htmlLoaderFile = getScriptHtmlLoaderFile(
+      "background",
+      result.manifest.background.scripts
+    );
 
-    result.manifest.background.scripts.forEach((script) => {
-      if (isRemoteUrl(script)) {
-        throw new Error(
-          `Background scripts cannot be remote locations -- ${script}`
-        );
-      }
+    const outputFile = getNameFromFileName(htmlLoaderFile.fileName);
 
-      const outputFile = getRollupOutputFile(script);
+    setVirtualModule(htmlLoaderFile.fileName, htmlLoaderFile.source);
 
-      result.inputScripts.push([outputFile, script]);
-
-      htmlScriptSrcs.push(`/${outputFile}.js`);
-    });
-
-    const htmlLoaderFile = getHtmlLoaderFile("background.html", htmlScriptSrcs);
-
-    result.emitFiles.push({
-      type: "asset",
-      fileName: htmlLoaderFile.fileName,
-      source: htmlLoaderFile.source,
-    });
+    result.inputScripts.push([outputFile, htmlLoaderFile.fileName]);
 
     delete result.manifest.background.scripts;
     result.manifest.background.page = htmlLoaderFile.fileName;

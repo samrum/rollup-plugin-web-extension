@@ -2,7 +2,6 @@ import { rollup } from "rollup";
 import type { RollupOutput } from "rollup";
 import sucrase from "@rollup/plugin-sucrase";
 import webExtension from "../../src/index";
-import { isOutputChunk } from "../../src/rollupUtils";
 
 interface TestFixture<ManifestType> {
   inputManifest: Partial<ManifestType>;
@@ -63,7 +62,7 @@ async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
     Object.keys(chunkCode).length + Object.keys(assetCode).length;
 
   output.forEach((file) => {
-    if (isOutputChunk(file)) {
+    if (file.type === "chunk") {
       if (!chunkCode[file.fileName]) {
         throw new Error(
           `Missing expected output chunk definition for: ${file.fileName}`

@@ -1,8 +1,10 @@
-import type { Plugin, RollupOptions, EmittedFile } from "rollup";
+import type { EmittedFile } from "rollup";
+import type { Plugin } from "vite";
 import type { RollupWebExtensionOptions } from "../types";
-import { addInputScriptsToOptionsInput } from "./rollupUtils";
+import { addInputScriptsToOptionsInput } from "./utils/rollup";
 import ManifestParser from "./manifestParser/manifestParser";
 import ManifestParserFactory from "./manifestParser/manifestParserFactory";
+import { getVirtualModule } from "./utils/virtualModule";
 
 export default function webExtension(
   pluginOptions: RollupWebExtensionOptions
@@ -20,7 +22,15 @@ export default function webExtension(
   return {
     name: "webExtension",
 
-    async options(options: RollupOptions) {
+    config: () => ({
+      build: {
+        rollupOptions: {
+          input: undefined,
+        },
+      },
+    }),
+
+    async options(options) {
       if (!inputManifest.manifest_version) {
         throw new Error("Missing manifest_version in manifest");
       }
@@ -49,6 +59,17 @@ export default function webExtension(
       return options;
     },
 
+    resolveId(id) {
+      const module = getVirtualModule(id);
+      if (module) return id;
+
+      return null;
+    },
+
+    load(id) {
+      return getVirtualModule(id);
+    },
+
     buildStart() {
       emitQueue.forEach((file) => {
         if (!file.fileName) {
@@ -61,7 +82,7 @@ export default function webExtension(
       emitQueue = [];
     },
 
-    async generateBundle(_, bundle) {
+    async generateBundle(_options, bundle) {
       const { emitFiles, manifest } = await manifestParser!.parseOutputBundle(
         bundle,
         outputManifest
