@@ -1,3 +1,6 @@
+import { getExpectedLog } from "../../../fixtureUtils";
+import { getExpectedCode } from "../shared/contentWithUnchunkedImport";
+
 const resourceDir =
   "test/fixture/index/javascript/resources/contentWithUnchunkedImport";
 
@@ -13,26 +16,14 @@ const inputManifest = {
 const expectedManifest = {
   content_scripts: [
     {
-      js: [`${resourceDir}/content.js`],
+      js: [`assets/${resourceDir}/content.js`],
       matches: ["https://*/*", "http://*/*"],
     },
   ],
 };
 
-const chunkCode = {
-  [`${resourceDir}/content.js`]: `function log(message) {
-  console.log(message);
-}
-
-log("content");
-`,
-};
-
-const assetCode = {};
-
 export default {
   inputManifest,
   expectedManifest,
-  chunkCode,
-  assetCode,
+  ...getExpectedCode(resourceDir),
 };

@@ -1,8 +1,10 @@
+import { getExpectedHtmlLoader, getExpectedLog } from "../../../fixtureUtils";
+
 const resourceDir = "test/fixture/index/javascript/resources/backgroundScript";
 
 const inputManifest = {
   background: {
-    scripts: [`${resourceDir}/background.js`],
+    scripts: [`/${resourceDir}/background.js`],
     persistent: false,
   },
 };
@@ -10,21 +12,16 @@ const inputManifest = {
 const expectedManifest = {
   background: {
     persistent: false,
-    page: `loader/background.html`,
+    page: `background.html`,
   },
 };
 
 const chunkCode = {
-  [`${resourceDir}/background.js`]: `function log(message) {
-  console.log(message);
-}
-
-log("background");
-`,
+  [`assets/background.js`]: getExpectedLog("background"),
 };
 
 const assetCode = {
-  [`loader/background.html`]: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><script type="module" src="/${resourceDir}/background.js"></script></head></html>`,
+  [`background.html`]: getExpectedHtmlLoader("background"),
 };
 
 export default {

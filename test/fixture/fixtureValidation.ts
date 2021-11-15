@@ -1,6 +1,5 @@
-import { rollup } from "rollup";
+import { build } from "vite";
 import type { RollupOutput } from "rollup";
-import sucrase from "@rollup/plugin-sucrase";
 import webExtension from "../../src/index";
 
 interface TestFixture<ManifestType> {
@@ -10,22 +9,32 @@ interface TestFixture<ManifestType> {
   chunkCode?: { [entryAlias: string]: string };
 }
 
-async function rollupGenerate(
+async function bundleGenerate(
   manifest: chrome.runtime.Manifest
 ): Promise<RollupOutput> {
-  const bundle = await rollup({
+  const bundle = await build({
+    logLevel: "warn",
+    build: {
+      write: false,
+      minify: false,
+      polyfillModulePreload: false,
+      rollupOptions: {
+        input: undefined,
+        output: {
+          entryFileNames: `assets/[name].js`,
+          chunkFileNames: `assets/[name].js`,
+          assetFileNames: `assets/[name].[ext]`,
+        },
+      },
+    },
     plugins: [
-      sucrase({
-        exclude: ["node_modules/**"],
-        transforms: ["typescript"],
-      }),
       webExtension({
         manifest,
       }),
     ],
   });
 
-  return bundle.generate({});
+  return bundle as RollupOutput;
 }
 
 async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
@@ -43,7 +52,7 @@ async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
     manifest_version: manifestVersion,
   };
 
-  const { output } = await rollupGenerate({
+  let { output } = await bundleGenerate({
     ...baseManifest,
     ...inputManifest,
   });
@@ -63,6 +72,11 @@ async function validateFixture<ManifestType extends chrome.runtime.Manifest>(
 
   output.forEach((file) => {
     if (file.type === "chunk") {
+      if (["assets/preload-helper.js"].includes(file.fileName)) {
+        delete chunkCode[file.fileName];
+        return;
+      }
+
       if (!chunkCode[file.fileName]) {
         throw new Error(
           `Missing expected output chunk definition for: ${file.fileName}`
