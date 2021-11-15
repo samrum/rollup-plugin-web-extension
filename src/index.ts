@@ -1,5 +1,5 @@
 import type { EmittedFile } from "rollup";
-import type { Plugin } from "vite";
+import type { Plugin, ResolvedConfig } from "vite";
 import type { RollupWebExtensionOptions } from "../types";
 import { addInputScriptsToOptionsInput } from "./utils/rollup";
 import ManifestParser from "./manifestParser/manifestParser";
@@ -12,6 +12,8 @@ export default function webExtension(
   if (!pluginOptions.manifest) {
     throw new Error("Missing manifest definition");
   }
+
+  let viteConfig: ResolvedConfig;
 
   const inputManifest: chrome.runtime.Manifest = pluginOptions.manifest;
 
@@ -30,6 +32,10 @@ export default function webExtension(
       },
     }),
 
+    configResolved(resolvedConfig) {
+      viteConfig = resolvedConfig;
+    },
+
     async options(options) {
       if (!inputManifest.manifest_version) {
         throw new Error("Missing manifest_version in manifest");
@@ -40,7 +46,7 @@ export default function webExtension(
       manifestParser = ManifestParserFactory.getParser(
         outputManifest.manifest_version,
         {
-          isInWatchMode: this.meta.watchMode,
+          viteConfig,
         }
       );
 

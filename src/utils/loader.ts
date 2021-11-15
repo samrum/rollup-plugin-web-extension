@@ -1,7 +1,4 @@
-import { getNameFromFileName } from "../manifestParser/utils";
-import { createHash } from "./crypto";
-
-const LOADER_DIR = "web-extension";
+import { getOutputFileName } from "../manifestParser/utils";
 
 export function getScriptHtmlLoaderFile(name: string, scriptSrcs: string[]) {
   const scriptsHtml = scriptSrcs
@@ -10,28 +7,27 @@ export function getScriptHtmlLoaderFile(name: string, scriptSrcs: string[]) {
     })
     .join("");
 
-  const hash = createHash(name, scriptsHtml);
-
   return {
-    fileName: `${LOADER_DIR}/${name}.${hash}.html`,
+    fileName: `${name}.html`,
     source: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />${scriptsHtml}</head></html>`,
   };
 }
 
-export function getContentScriptLoaderFile(outputChunkFileName: string) {
-  const name = getNameFromFileName(outputChunkFileName);
-
-  const hash = createHash(name, outputChunkFileName);
+export function getContentScriptLoaderFile(
+  scriptFileName: string,
+  outputChunkFileName: string
+) {
+  const outputFile = getOutputFileName(scriptFileName);
 
   return {
-    fileName: `${LOADER_DIR}/${name}.${hash}.js`,
+    fileName: `${outputFile}.js`,
     source: `(async()=>{await import(chrome.runtime.getURL("${outputChunkFileName}"))})();`,
   };
 }
 
 export function getServiceWorkerLoaderFile(serviceWorkerFileName: string) {
   return {
-    fileName: `webExtensionServiceWorker.js`,
+    fileName: `serviceWorker.js`,
     source: `import "/${serviceWorkerFileName}";`,
   };
 }

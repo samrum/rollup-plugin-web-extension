@@ -12,10 +12,10 @@ import ManifestParser, {
 import {
   parseManifestHtmlFile,
   pipe,
-  getNameFromFileName,
   findBundleOutputChunkForScript,
   outputChunkHasImports,
   isSingleHtmlFilename,
+  getOutputFileName,
 } from "./utils";
 
 interface ManifestV2ParseResult extends ParseResult {
@@ -65,7 +65,7 @@ export default class ManifestV2 implements ManifestParser {
   ): ManifestV2ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile) => {
-        const outputFile = getNameFromFileName(scriptFile);
+        const outputFile = getOutputFileName(scriptFile);
 
         result.inputScripts.push([outputFile, scriptFile]);
       });
@@ -94,9 +94,9 @@ export default class ManifestV2 implements ManifestParser {
       result.manifest.background.scripts
     );
 
-    const outputFile = getNameFromFileName(htmlLoaderFile.fileName);
-
     setVirtualModule(htmlLoaderFile.fileName, htmlLoaderFile.source);
+
+    const outputFile = getOutputFileName(htmlLoaderFile.fileName);
 
     result.inputScripts.push([outputFile, htmlLoaderFile.fileName]);
 
@@ -144,6 +144,7 @@ export default class ManifestV2 implements ManifestParser {
         }
 
         const scriptLoaderFile = getContentScriptLoaderFile(
+          scriptFileName,
           outputChunk.fileName
         );
 
@@ -169,7 +170,7 @@ export default class ManifestV2 implements ManifestParser {
     });
 
     if (webAccessibleResources.size > 0) {
-      if (this.config.isInWatchMode) {
+      if (this.config.viteConfig.build.watch) {
         // expose all files in watch mode to allow web-ext reloading to work when manifest changes are not applied on reload (eg. Firefox)
         webAccessibleResources.add("*.js");
       }

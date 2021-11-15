@@ -1,4 +1,5 @@
 import type { EmittedFile, OutputBundle } from "rollup";
+import type { ResolvedConfig } from "vite";
 
 export default interface ManifestParser {
   parseManifest(manifest: chrome.runtime.Manifest): Promise<ParseResult>;
@@ -16,5 +17,5 @@ export interface ParseResult {
 }
 
 export interface ManifestParserConfig {
-  isInWatchMode: boolean;
+  viteConfig: ResolvedConfig;
 }

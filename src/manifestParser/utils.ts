@@ -10,7 +10,7 @@ export function parseManifestHtmlFile(
     return result;
   }
 
-  const outputFile = getNameFromFileName(htmlFileName);
+  const outputFile = getOutputFileName(htmlFileName);
 
   result.inputScripts.push([outputFile, htmlFileName]);
 
@@ -28,10 +28,16 @@ export function pipe<T>(
   );
 }
 
-export function getNameFromFileName(inputFileName: string): string {
-  const { name } = path.parse(inputFileName);
+export function getOutputFileName(inputFileName: string): string {
+  let { dir, name } = path.parse(path.normalize(inputFileName));
 
-  return name;
+  if (!dir) {
+    return name;
+  }
+
+  dir = dir.startsWith("/") ? dir.slice(1) : dir;
+
+  return `${dir}/${name}`;
 }
 
 export function findBundleOutputChunkForScript(

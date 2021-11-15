@@ -2,7 +2,7 @@ import fs from "fs";
 import ManifestParser, { ParseResult } from "./manifestParser";
 import {
   findBundleOutputChunkForScript,
-  getNameFromFileName,
+  getOutputFileName,
   isSingleHtmlFilename,
   outputChunkHasImports,
   parseManifestHtmlFile,
@@ -19,6 +19,8 @@ interface ManifestV3ParseResult extends ParseResult {
 }
 
 export default class ManifestV3 implements ManifestParser {
+  constructor() {}
+
   async parseManifest(
     manifest: ManifestV3ParseResult["manifest"]
   ): Promise<ManifestV3ParseResult> {
@@ -61,7 +63,7 @@ export default class ManifestV3 implements ManifestParser {
   ): ManifestV3ParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile) => {
-        const outputFile = getNameFromFileName(scriptFile);
+        const outputFile = getOutputFileName(scriptFile);
 
         result.inputScripts.push([outputFile, scriptFile]);
       });
@@ -87,7 +89,7 @@ export default class ManifestV3 implements ManifestParser {
 
     const serviceWorkerScript = result.manifest.background?.service_worker;
 
-    const outputFile = getNameFromFileName(serviceWorkerScript);
+    const outputFile = getOutputFileName(serviceWorkerScript);
 
     result.inputScripts.push([outputFile, serviceWorkerScript]);
 
@@ -171,6 +173,7 @@ export default class ManifestV3 implements ManifestParser {
         }
 
         const scriptLoaderFile = getContentScriptLoaderFile(
+          scriptFileName,
           outputChunk.fileName
         );
 
