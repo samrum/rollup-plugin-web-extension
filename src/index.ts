@@ -5,7 +5,6 @@ import { addInputScriptsToOptionsInput } from "./utils/rollup";
 import ManifestParser from "./manifestParser/manifestParser";
 import ManifestParserFactory from "./manifestParser/manifestParserFactory";
 import { getVirtualModule } from "./utils/virtualModule";
-import ManifestV2 from "./manifestParser/manifestV2";
 
 export default function webExtension(
   pluginOptions: RollupWebExtensionOptions
@@ -84,10 +83,8 @@ export default function webExtension(
     },
 
     buildStart() {
-      if (manifestParser instanceof ManifestV2) {
-        manifestParser.writeDevServeBuild(
-          outputManifest as chrome.runtime.ManifestV2
-        );
+      if (viteConfig.command === "serve") {
+        manifestParser!.writeServeBuild(outputManifest);
       }
 
       emitQueue.forEach((file) => {

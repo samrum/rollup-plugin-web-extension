@@ -30,8 +30,12 @@ export function getContentScriptLoaderFile(
 }
 
 export function getServiceWorkerLoaderFile(serviceWorkerFileName: string) {
+  const importPath = serviceWorkerFileName.startsWith("http")
+    ? `${serviceWorkerFileName}`
+    : `/${serviceWorkerFileName}`;
+
   return {
     fileName: `serviceWorker.js`,
-    source: `import "/${serviceWorkerFileName}";`,
+    source: `import "${importPath}";`,
   };
 }

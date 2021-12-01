@@ -8,6 +8,8 @@ export default interface ManifestParser {
     bundle: OutputBundle,
     manifest: chrome.runtime.Manifest
   ): Promise<ParseResult>;
+
+  writeServeBuild(manifest: chrome.runtime.Manifest): void;
 }
 
 export interface ParseResult {

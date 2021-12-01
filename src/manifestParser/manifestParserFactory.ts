@@ -11,7 +11,7 @@ export default class ManifestParserFactory {
       case 2:
         return new ManifestV2(parserConfig);
       case 3:
-        return new ManifestV3();
+        return new ManifestV3(parserConfig);
     }
 
     throw new Error(

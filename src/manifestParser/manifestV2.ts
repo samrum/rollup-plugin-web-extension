@@ -49,7 +49,7 @@ export default class ManifestV2 implements ManifestParser {
     );
   }
 
-  async writeDevServeBuild(manifest: chrome.runtime.ManifestV2) {
+  async writeServeBuild(manifest: chrome.runtime.ManifestV2) {
     await emptyDir(this.config.viteConfig.build.outDir);
     copy("public", this.config.viteConfig.build.outDir);
 
