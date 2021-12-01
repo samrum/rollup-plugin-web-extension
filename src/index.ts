@@ -5,6 +5,7 @@ import { addInputScriptsToOptionsInput } from "./utils/rollup";
 import ManifestParser from "./manifestParser/manifestParser";
 import ManifestParserFactory from "./manifestParser/manifestParserFactory";
 import { getVirtualModule } from "./utils/virtualModule";
+import ManifestV2 from "./manifestParser/manifestV2";
 
 export default function webExtension(
   pluginOptions: RollupWebExtensionOptions
@@ -28,6 +29,12 @@ export default function webExtension(
       build: {
         rollupOptions: {
           input: undefined,
+        },
+      },
+      server: {
+        hmr: {
+          protocol: "ws", // required for content script hmr to work on https
+          host: "localhost",
         },
       },
     }),
@@ -77,6 +84,12 @@ export default function webExtension(
     },
 
     buildStart() {
+      if (manifestParser instanceof ManifestV2) {
+        manifestParser.writeDevServeBuild(
+          outputManifest as chrome.runtime.ManifestV2
+        );
+      }
+
       emitQueue.forEach((file) => {
         if (!file.fileName) {
           return;

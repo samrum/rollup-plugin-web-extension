@@ -19,9 +19,13 @@ export function getContentScriptLoaderFile(
 ) {
   const outputFile = getOutputFileName(scriptFileName);
 
+  const importPath = outputChunkFileName.startsWith("http")
+    ? `'${outputChunkFileName}'`
+    : `chrome.runtime.getURL("${outputChunkFileName}")`;
+
   return {
     fileName: `${outputFile}.js`,
-    source: `(async()=>{await import(chrome.runtime.getURL("${outputChunkFileName}"))})();`,
+    source: `(async()=>{await import(${importPath})})();`,
   };
 }
 
