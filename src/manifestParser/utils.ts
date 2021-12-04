@@ -1,5 +1,5 @@
 import path from "path";
-import { OutputBundle, OutputChunk } from "rollup";
+import { OutputAsset, OutputBundle, OutputChunk } from "rollup";
 import { ParseResult } from "./manifestParser";
 
 export function parseManifestHtmlFile(
@@ -50,7 +50,7 @@ export function findBundleOutputChunkForScript(
         return false;
       }
 
-      return output.facadeModuleId?.endsWith(scriptFileName);
+      return output.facadeModuleId?.endsWith(scriptFileName) ?? false;
     }) || [];
 
   if (!bundleFile || bundleFile.type !== "chunk") {
@@ -58,6 +58,19 @@ export function findBundleOutputChunkForScript(
   }
 
   return bundleFile;
+}
+
+export function getCssAssetForChunk(
+  bundle: OutputBundle,
+  outputChunk: OutputChunk
+): OutputAsset | undefined {
+  return Object.values(bundle).find((output) => {
+    if (output.type !== "asset") {
+      return false;
+    }
+
+    return output.name == `${outputChunk.name}.css`;
+  }) as OutputAsset | undefined;
 }
 
 export function outputChunkHasImports(outputChunk: OutputChunk): boolean {

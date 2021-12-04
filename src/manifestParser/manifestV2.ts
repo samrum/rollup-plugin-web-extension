@@ -21,6 +21,7 @@ import {
   parseManifestHtmlFile,
   pipe,
   findBundleOutputChunkForScript,
+  getCssAssetForChunk,
   outputChunkHasImports,
   isSingleHtmlFilename,
   getOutputFileName,
@@ -218,6 +219,16 @@ export default class ManifestV2 implements ManifestParser {
         );
         if (!outputChunk) {
           return;
+        }
+
+        const cssAsset = getCssAssetForChunk(bundle, outputChunk);
+        if (cssAsset) {
+          outputChunk.code = outputChunk.code.replace(
+            cssAsset.name!,
+            cssAsset.fileName
+          );
+
+          webAccessibleResources.add(cssAsset.fileName);
         }
 
         if (!outputChunkHasImports(outputChunk)) {

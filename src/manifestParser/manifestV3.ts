@@ -7,6 +7,7 @@ import ManifestParser, {
 } from "./manifestParser";
 import {
   findBundleOutputChunkForScript,
+  getCssAssetForChunk,
   getOutputFileName,
   isSingleHtmlFilename,
   outputChunkHasImports,
@@ -294,6 +295,16 @@ export default class ManifestV3 implements ManifestParser {
         const resources = new Set<string>();
 
         resources.add(outputChunk.fileName);
+
+        const cssAsset = getCssAssetForChunk(bundle, outputChunk);
+        if (cssAsset) {
+          outputChunk.code = outputChunk.code.replace(
+            cssAsset.name!,
+            cssAsset.fileName
+          );
+
+          resources.add(cssAsset.fileName);
+        }
 
         outputChunk.imports.forEach(resources.add, resources);
         outputChunk.dynamicImports.forEach(resources.add, resources);

@@ -72,6 +72,8 @@
   },
   "dependencies": {
     "@types/chrome": "^0.0.158",
+    "@types/etag": "^1.8.1",
+    "etag": "^1.8.1",
     "fs-extra": "^10.0.0"
   }
 }

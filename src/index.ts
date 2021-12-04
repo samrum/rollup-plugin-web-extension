@@ -5,6 +5,7 @@ import { addInputScriptsToOptionsInput } from "./utils/rollup";
 import ManifestParser from "./manifestParser/manifestParser";
 import ManifestParserFactory from "./manifestParser/manifestParserFactory";
 import { getVirtualModule } from "./utils/virtualModule";
+import contentScriptStyleHandler from "./middleware/contentScriptStyleHandler";
 
 export default function webExtension(
   pluginOptions: RollupWebExtensionOptions
@@ -37,6 +38,10 @@ export default function webExtension(
         },
       },
     }),
+
+    configureServer(server) {
+      server.middlewares.use(contentScriptStyleHandler);
+    },
 
     configResolved(resolvedConfig) {
       viteConfig = resolvedConfig;
