@@ -15,3 +15,8 @@ interface RollupWebExtensionOptions {
 export default function webExtension(
   options?: RollupWebExtensionOptions
 ): Plugin;
+
+// TODO: Have this automatically included on plugin usage
+interface ImportMeta {
+  CURRENT_CONTENT_SCRIPT_CSS_URL?: string;
+}

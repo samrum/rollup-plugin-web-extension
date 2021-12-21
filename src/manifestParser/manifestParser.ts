@@ -1,15 +1,19 @@
 import type { EmittedFile, OutputBundle } from "rollup";
-import type { ResolvedConfig } from "vite";
+import type { Manifest, ResolvedConfig } from "vite";
 
 export default interface ManifestParser {
   parseManifest(manifest: chrome.runtime.Manifest): Promise<ParseResult>;
 
-  parseOutputBundle(
-    bundle: OutputBundle,
-    manifest: chrome.runtime.Manifest
-  ): Promise<ParseResult>;
+  writeServeBuild(
+    manifest: chrome.runtime.Manifest,
+    devServerPort: number
+  ): void;
 
-  writeServeBuild(manifest: chrome.runtime.Manifest): void;
+  parseViteManifest(
+    viteManifest: Manifest,
+    outputManifest: chrome.runtime.Manifest,
+    outputBundle: OutputBundle
+  ): Promise<ParseResult>;
 }
 
 export interface ParseResult {

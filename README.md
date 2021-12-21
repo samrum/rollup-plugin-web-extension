@@ -2,6 +2,10 @@
 
 A rollup plugin to help build cross browser platform, ES module based web extensions.
 
+## Missing/Untested Features
+
+- Async chunk and chunk CSS in content scripts
+
 ## Browser Support
 
 In order to fully support ES module based extensions, the following requirements must be met by the browser:

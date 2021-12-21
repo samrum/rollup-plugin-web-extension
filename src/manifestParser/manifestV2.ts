@@ -7,7 +7,6 @@ import {
   readFileSync,
   writeFile,
 } from "fs-extra";
-import type { OutputBundle } from "rollup";
 import {
   getContentScriptLoaderFile,
   getScriptHtmlLoaderFile,
@@ -20,12 +19,13 @@ import ManifestParser, {
 import {
   parseManifestHtmlFile,
   pipe,
-  findBundleOutputChunkForScript,
-  getCssAssetForChunk,
-  outputChunkHasImports,
   isSingleHtmlFilename,
   getOutputFileName,
+  updateContentSecurityPolicyForHmr,
 } from "./utils";
+import { Manifest } from "vite";
+import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
+import { OutputBundle } from "rollup";
 
 interface ManifestV2ParseResult extends ParseResult {
   manifest: chrome.runtime.ManifestV2;
@@ -50,7 +50,10 @@ export default class ManifestV2 implements ManifestParser {
     );
   }
 
-  async writeServeBuild(manifest: chrome.runtime.ManifestV2) {
+  async writeServeBuild(
+    manifest: chrome.runtime.ManifestV2,
+    devServerPort: number
+  ) {
     await emptyDir(this.config.viteConfig.build.outDir);
     copy("public", this.config.viteConfig.build.outDir);
 
@@ -60,7 +63,7 @@ export default class ManifestV2 implements ManifestParser {
 
     const hmrServerOrigin = `http://${
       this.config.viteConfig.server.hmr!.host
-    }:${this.config.viteConfig.server.port}`;
+    }:${devServerPort}`;
 
     for (const fileName of this.#getManifestFileNames(manifest)) {
       let content =
@@ -69,7 +72,7 @@ export default class ManifestV2 implements ManifestParser {
           encoding: "utf-8",
         }));
 
-      // update root paths
+      // update absolute paths
       content = content.replace('src="/', `src="${hmrServerOrigin}/`);
 
       // update relative paths
@@ -118,6 +121,11 @@ export default class ManifestV2 implements ManifestParser {
         }
       }
     }
+
+    manifest.content_security_policy = updateContentSecurityPolicyForHmr(
+      manifest.content_security_policy,
+      hmrServerOrigin
+    );
 
     await writeFile(
       `${this.config.viteConfig.build.outDir}/manifest.json`,
@@ -175,7 +183,13 @@ export default class ManifestV2 implements ManifestParser {
 
     const htmlLoaderFile = getScriptHtmlLoaderFile(
       "background",
-      result.manifest.background.scripts
+      result.manifest.background.scripts.map((script) => {
+        if (/^[\.\/]/.test(script)) {
+          return script;
+        }
+
+        return `/${script}`;
+      })
     );
 
     setVirtualModule(htmlLoaderFile.fileName, htmlLoaderFile.source);
@@ -190,22 +204,24 @@ export default class ManifestV2 implements ManifestParser {
     return result;
   }
 
-  async parseOutputBundle(
-    bundle: OutputBundle,
-    manifest: ManifestV2ParseResult["manifest"]
+  async parseViteManifest(
+    viteManifest: Manifest,
+    outputManifest: ManifestV2ParseResult["manifest"],
+    outputBundle: OutputBundle
   ): Promise<ManifestV2ParseResult> {
-    let result = {
+    let result: ManifestV2ParseResult = {
       inputScripts: [],
       emitFiles: [],
-      manifest: manifest,
+      manifest: outputManifest,
     };
 
-    return this.#parseBundleContentScripts(result, bundle);
+    return this.#parseBundleContentScripts(result, viteManifest, outputBundle);
   }
 
   #parseBundleContentScripts(
     result: ManifestV2ParseResult,
-    bundle: OutputBundle
+    viteManifest: Manifest,
+    outputBundle: OutputBundle
   ): ManifestV2ParseResult {
     const webAccessibleResources = new Set(
       result.manifest.web_accessible_resources ?? []
@@ -213,33 +229,42 @@ export default class ManifestV2 implements ManifestParser {
 
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
-        const outputChunk = findBundleOutputChunkForScript(
-          bundle,
-          scriptFileName
-        );
-        if (!outputChunk) {
+        const manifestChunk = viteManifest[scriptFileName];
+        if (!manifestChunk) {
           return;
         }
 
-        const cssAsset = getCssAssetForChunk(bundle, outputChunk);
-        if (cssAsset) {
-          outputChunk.code = outputChunk.code.replace(
-            cssAsset.name!,
-            cssAsset.fileName
-          );
-
-          webAccessibleResources.add(cssAsset.fileName);
+        if (manifestChunk.css?.length) {
+          const outputChunk = outputBundle[manifestChunk.file];
+          if (outputChunk.type === "chunk") {
+            outputChunk.code = outputChunk.code.replace(
+              manifestChunk.file.replace(".js", ".css"),
+              manifestChunk.css[0]
+            );
+          }
         }
 
-        if (!outputChunkHasImports(outputChunk)) {
-          script.js![index] = outputChunk.fileName;
+        manifestChunk.css?.forEach(
+          webAccessibleResources.add,
+          webAccessibleResources
+        );
+        manifestChunk.assets?.forEach(
+          webAccessibleResources.add,
+          webAccessibleResources
+        );
+
+        if (
+          !manifestChunk.imports?.length &&
+          !manifestChunk.dynamicImports?.length
+        ) {
+          script.js![index] = manifestChunk.file;
 
           return;
         }
 
         const scriptLoaderFile = getContentScriptLoaderFile(
           scriptFileName,
-          outputChunk.fileName
+          manifestChunk.file
         );
 
         script.js![index] = scriptLoaderFile.fileName;
@@ -250,16 +275,10 @@ export default class ManifestV2 implements ManifestParser {
           source: scriptLoaderFile.source,
         });
 
-        webAccessibleResources.add(outputChunk.fileName);
-
-        outputChunk.imports.forEach(
-          webAccessibleResources.add,
-          webAccessibleResources
-        );
-        outputChunk.dynamicImports.forEach(
-          webAccessibleResources.add,
-          webAccessibleResources
-        );
+        getWebAccessibleFilesForManifestChunk(
+          viteManifest,
+          scriptFileName
+        ).forEach(webAccessibleResources.add, webAccessibleResources);
       });
     });
 

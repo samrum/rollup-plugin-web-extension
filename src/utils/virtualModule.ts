@@ -1,3 +1,5 @@
+// TODO: Use vite suggested virtual module prepend?
+
 const virtualModules = new Map<string, string>();
 
 export function setVirtualModule(id: string, source: string) {

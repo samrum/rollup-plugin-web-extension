@@ -1,5 +1,5 @@
 import path from "path";
-import { OutputAsset, OutputBundle, OutputChunk } from "rollup";
+import { OutputBundle, OutputChunk } from "rollup";
 import { ParseResult } from "./manifestParser";
 
 export function parseManifestHtmlFile(
@@ -60,19 +60,6 @@ export function findBundleOutputChunkForScript(
   return bundleFile;
 }
 
-export function getCssAssetForChunk(
-  bundle: OutputBundle,
-  outputChunk: OutputChunk
-): OutputAsset | undefined {
-  return Object.values(bundle).find((output) => {
-    if (output.type !== "asset") {
-      return false;
-    }
-
-    return output.name == `${outputChunk.name}.css`;
-  }) as OutputAsset | undefined;
-}
-
 export function outputChunkHasImports(outputChunk: OutputChunk): boolean {
   return Boolean(
     outputChunk.imports.length || outputChunk.dynamicImports.length
@@ -81,4 +68,21 @@ export function outputChunkHasImports(outputChunk: OutputChunk): boolean {
 
 export function isSingleHtmlFilename(fileName: string): boolean {
   return /[^*]+.html$/.test(fileName);
+}
+
+export function updateContentSecurityPolicyForHmr(
+  contentSecurityPolicy: string | undefined,
+  hmrServerOrigin: string
+): string {
+  const cspHmrScriptSrc = `script-src ${hmrServerOrigin}; object-src 'self'`;
+
+  if (!contentSecurityPolicy) {
+    return cspHmrScriptSrc;
+  }
+
+  if (contentSecurityPolicy.includes("script-src")) {
+    return contentSecurityPolicy.replace(`script-src`, cspHmrScriptSrc);
+  }
+
+  return (contentSecurityPolicy += `; ${cspHmrScriptSrc}`);
 }

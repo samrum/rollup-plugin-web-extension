@@ -7,12 +7,12 @@ import ManifestParser, {
 } from "./manifestParser";
 import {
   findBundleOutputChunkForScript,
-  getCssAssetForChunk,
   getOutputFileName,
   isSingleHtmlFilename,
   outputChunkHasImports,
   parseManifestHtmlFile,
   pipe,
+  updateContentSecurityPolicyForHmr,
 } from "./utils";
 import { getVirtualModule } from "../utils/virtualModule";
 import type { OutputBundle } from "rollup";
@@ -20,6 +20,8 @@ import {
   getContentScriptLoaderFile,
   getServiceWorkerLoaderFile,
 } from "../utils/loader";
+import { Manifest } from "vite";
+import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
 
 interface ManifestV3ParseResult extends ParseResult {
   manifest: chrome.runtime.ManifestV3;
@@ -112,7 +114,10 @@ export default class ManifestV3 implements ManifestParser {
     return result;
   }
 
-  async writeServeBuild(manifest: chrome.runtime.ManifestV3) {
+  async writeServeBuild(
+    manifest: chrome.runtime.ManifestV3,
+    devServerPort: number
+  ) {
     await emptyDir(this.config.viteConfig.build.outDir);
     copy("public", this.config.viteConfig.build.outDir);
 
@@ -122,7 +127,7 @@ export default class ManifestV3 implements ManifestParser {
 
     const hmrServerOrigin = `http://${
       this.config.viteConfig.server.hmr!.host
-    }:${this.config.viteConfig.server.port}`;
+    }:${devServerPort}`;
 
     for (const fileName of this.#getManifestFileNames(manifest)) {
       let content =
@@ -199,31 +204,44 @@ export default class ManifestV3 implements ManifestParser {
       }
     }
 
+    manifest.content_security_policy ??= {};
+
+    manifest.content_security_policy.extension_pages =
+      updateContentSecurityPolicyForHmr(
+        manifest.content_security_policy.extension_pages,
+        hmrServerOrigin
+      );
+
     await writeFile(
       `${this.config.viteConfig.build.outDir}/manifest.json`,
       JSON.stringify(manifest, null, 2)
     );
   }
 
-  async parseOutputBundle(
-    bundle: OutputBundle,
-    manifest: ManifestV3ParseResult["manifest"]
+  async parseViteManifest(
+    viteManifest: Manifest,
+    outputManifest: ManifestV3ParseResult["manifest"],
+    outputBundle: OutputBundle
   ): Promise<ManifestV3ParseResult> {
     let result: ManifestV3ParseResult = {
       inputScripts: [],
       emitFiles: [],
-      manifest: manifest,
+      manifest: outputManifest,
     };
 
-    result = this.#parseBundleServiceWorker(result, bundle);
-    result = this.#parseBundleContentScripts(result, bundle);
+    result = this.#parseBundleServiceWorker(result, viteManifest);
+    result = this.#parseBundleContentScripts(
+      result,
+      viteManifest,
+      outputBundle
+    );
 
     return result;
   }
 
   #parseBundleServiceWorker(
     result: ManifestV3ParseResult,
-    bundle: OutputBundle
+    viteManifest: Manifest
   ): ManifestV3ParseResult {
     const serviceWorkerFileName = result.manifest.background?.service_worker;
 
@@ -231,18 +249,12 @@ export default class ManifestV3 implements ManifestParser {
       return result;
     }
 
-    const outputChunk = findBundleOutputChunkForScript(
-      bundle,
-      serviceWorkerFileName
-    );
-
-    if (!outputChunk) {
+    const manifestChunk = viteManifest[serviceWorkerFileName];
+    if (!manifestChunk) {
       throw new Error("Failed to build service worker");
     }
 
-    const serviceWorkerLoader = getServiceWorkerLoaderFile(
-      outputChunk.fileName
-    );
+    const serviceWorkerLoader = getServiceWorkerLoaderFile(manifestChunk.file);
 
     result.manifest.background!.service_worker = serviceWorkerLoader.fileName;
 
@@ -257,7 +269,8 @@ export default class ManifestV3 implements ManifestParser {
 
   #parseBundleContentScripts(
     result: ManifestV3ParseResult,
-    bundle: OutputBundle
+    viteManifest: Manifest,
+    outputBundle: OutputBundle
   ): ManifestV3ParseResult {
     const webAccessibleResources = new Set(
       result.manifest.web_accessible_resources ?? []
@@ -265,23 +278,38 @@ export default class ManifestV3 implements ManifestParser {
 
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
-        const outputChunk = findBundleOutputChunkForScript(
-          bundle,
-          scriptFileName
-        );
-        if (!outputChunk) {
+        const resources = new Set<string>();
+
+        const manifestChunk = viteManifest[scriptFileName];
+        if (!manifestChunk) {
           return;
         }
 
-        if (!outputChunkHasImports(outputChunk)) {
-          script.js![index] = outputChunk.fileName;
+        if (manifestChunk.css?.length) {
+          const outputChunk = outputBundle[manifestChunk.file];
+          if (outputChunk.type === "chunk") {
+            outputChunk.code = outputChunk.code.replace(
+              manifestChunk.file.replace(".js", ".css"),
+              manifestChunk.css[0]
+            );
+          }
+        }
+
+        manifestChunk.css?.forEach(resources.add, resources);
+        manifestChunk.assets?.forEach(resources.add, resources);
+
+        if (
+          !manifestChunk.imports?.length &&
+          !manifestChunk.dynamicImports?.length
+        ) {
+          script.js![index] = manifestChunk.file;
 
           return;
         }
 
         const scriptLoaderFile = getContentScriptLoaderFile(
           scriptFileName,
-          outputChunk.fileName
+          manifestChunk.file
         );
 
         script.js![index] = scriptLoaderFile.fileName;
@@ -292,22 +320,10 @@ export default class ManifestV3 implements ManifestParser {
           source: scriptLoaderFile.source,
         });
 
-        const resources = new Set<string>();
-
-        resources.add(outputChunk.fileName);
-
-        const cssAsset = getCssAssetForChunk(bundle, outputChunk);
-        if (cssAsset) {
-          outputChunk.code = outputChunk.code.replace(
-            cssAsset.name!,
-            cssAsset.fileName
-          );
-
-          resources.add(cssAsset.fileName);
-        }
-
-        outputChunk.imports.forEach(resources.add, resources);
-        outputChunk.dynamicImports.forEach(resources.add, resources);
+        getWebAccessibleFilesForManifestChunk(
+          viteManifest,
+          scriptFileName
+        ).forEach(resources.add, resources);
 
         webAccessibleResources.add({
           resources: Array.from(resources),
