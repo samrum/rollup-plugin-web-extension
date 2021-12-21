@@ -6,10 +6,8 @@ import ManifestParser, {
   ParseResult,
 } from "./manifestParser";
 import {
-  findBundleOutputChunkForScript,
   getOutputFileName,
   isSingleHtmlFilename,
-  outputChunkHasImports,
   parseManifestHtmlFile,
   pipe,
   updateContentSecurityPolicyForHmr,

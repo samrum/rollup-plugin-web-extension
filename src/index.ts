@@ -1,5 +1,5 @@
 import type { EmittedFile } from "rollup";
-import type { Manifest, Plugin, ResolvedConfig, ViteDevServer } from "vite";
+import type { Manifest, Plugin, ResolvedConfig } from "vite";
 import type { RollupWebExtensionOptions } from "../types";
 import { addInputScriptsToOptionsInput } from "./utils/rollup";
 import ManifestParser from "./manifestParser/manifestParser";
@@ -41,7 +41,7 @@ export default function webExtension(
         config.server.hmr = {};
       }
 
-      config.server.hmr.protocol = "ws";
+      config.server.hmr.protocol = "ws"; // required for content script hmr to work on https
       config.server.hmr.host = "localhost";
 
       return config;
