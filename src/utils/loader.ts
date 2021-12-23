@@ -1,4 +1,4 @@
-import { getOutputFileName } from "../manifestParser/utils";
+import { getOutputFileName } from "./manifest";
 
 export function getScriptHtmlLoaderFile(name: string, scriptSrcs: string[]) {
   const scriptsHtml = scriptSrcs

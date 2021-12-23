@@ -23,7 +23,7 @@ import {
   getOutputFileName,
   updateContentSecurityPolicyForHmr,
   rewriteCssInBundleForManifestChunk,
-} from "./utils";
+} from "../utils/manifest";
 import type { Manifest as ViteManifest } from "vite";
 import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
 import { OutputBundle } from "rollup";

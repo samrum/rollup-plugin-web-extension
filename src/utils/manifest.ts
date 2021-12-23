@@ -1,7 +1,7 @@
 import path from "path";
 import { OutputBundle, OutputChunk } from "rollup";
 import { ManifestChunk } from "vite";
-import { ParseResult } from "./manifestParser";
+import { ParseResult } from "../manifestParser/manifestParser";
 
 export function parseManifestHtmlFile<Manifest>(
   htmlFileName: string | undefined,

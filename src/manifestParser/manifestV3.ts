@@ -12,7 +12,7 @@ import {
   pipe,
   rewriteCssInBundleForManifestChunk,
   updateContentSecurityPolicyForHmr,
-} from "./utils";
+} from "../utils/manifest";
 import { getVirtualModule } from "../utils/virtualModule";
 import type { OutputBundle } from "rollup";
 import {
