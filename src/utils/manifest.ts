@@ -41,32 +41,6 @@ export function getOutputFileName(inputFileName: string): string {
   return `${dir}/${name}`;
 }
 
-export function findBundleOutputChunkForScript(
-  bundle: OutputBundle,
-  scriptFileName: string
-): OutputChunk | null {
-  const [, bundleFile] =
-    Object.entries(bundle).find(([, output]) => {
-      if (output.type !== "chunk") {
-        return false;
-      }
-
-      return output.facadeModuleId?.endsWith(scriptFileName) ?? false;
-    }) || [];
-
-  if (!bundleFile || bundleFile.type !== "chunk") {
-    return null;
-  }
-
-  return bundleFile;
-}
-
-export function outputChunkHasImports(outputChunk: OutputChunk): boolean {
-  return Boolean(
-    outputChunk.imports.length || outputChunk.dynamicImports.length
-  );
-}
-
 export function isSingleHtmlFilename(fileName: string): boolean {
   return /[^*]+.html$/.test(fileName);
 }

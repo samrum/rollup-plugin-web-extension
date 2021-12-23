@@ -95,21 +95,23 @@ export async function writeManifestServiceWorkerFiles(
   hmrServerOrigin: string,
   outDir: string
 ) {
-  if (manifest.background?.service_worker) {
-    const fileName = manifest.background?.service_worker;
-
-    const serviceWorkerLoader = getServiceWorkerLoaderFile(
-      `${hmrServerOrigin}/${fileName}`
-    );
-
-    manifest.background.service_worker = serviceWorkerLoader.fileName;
-
-    const outFile = `${outDir}/${serviceWorkerLoader.fileName}`;
-
-    const outFileDir = path.dirname(outFile);
-
-    await ensureDir(outFileDir);
-
-    await writeFile(outFile, serviceWorkerLoader.source);
+  if (!manifest.background?.service_worker) {
+    return;
   }
+
+  const fileName = manifest.background?.service_worker;
+
+  const serviceWorkerLoader = getServiceWorkerLoaderFile(
+    `${hmrServerOrigin}/${fileName}`
+  );
+
+  manifest.background.service_worker = serviceWorkerLoader.fileName;
+
+  const outFile = `${outDir}/${serviceWorkerLoader.fileName}`;
+
+  const outFileDir = path.dirname(outFile);
+
+  await ensureDir(outFileDir);
+
+  await writeFile(outFile, serviceWorkerLoader.source);
 }
