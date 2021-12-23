@@ -52,7 +52,7 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
     return result;
   }
 
-  #getManifestFileNames(manifest: chrome.runtime.ManifestV3): string[] {
+  #getManifestFileNames(manifest: Manifest): string[] {
     const webAccessibleResourcesHtmlFileNames: string[] = [];
 
     (manifest.web_accessible_resources ?? []).forEach(({ resources }) =>
@@ -109,9 +109,9 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
   }
 
   async writeServeBuild(
-    manifest: chrome.runtime.ManifestV3,
+    manifest: Manifest,
     devServerPort: number
-  ) {
+  ): Promise<void> {
     await emptyDir(this.config.viteConfig.build.outDir);
     copy("public", this.config.viteConfig.build.outDir);
 
