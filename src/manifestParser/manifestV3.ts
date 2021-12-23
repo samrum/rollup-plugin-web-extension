@@ -10,6 +10,7 @@ import {
   isSingleHtmlFilename,
   parseManifestHtmlFile,
   pipe,
+  rewriteCssInBundleForManifestChunk,
   updateContentSecurityPolicyForHmr,
 } from "./utils";
 import { getVirtualModule } from "../utils/virtualModule";
@@ -278,15 +279,7 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
           return;
         }
 
-        if (manifestChunk.css?.length) {
-          const outputChunk = outputBundle[manifestChunk.file];
-          if (outputChunk.type === "chunk") {
-            outputChunk.code = outputChunk.code.replace(
-              manifestChunk.file.replace(".js", ".css"),
-              manifestChunk.css[0]
-            );
-          }
-        }
+        rewriteCssInBundleForManifestChunk(manifestChunk, outputBundle);
 
         manifestChunk.css?.forEach(resources.add, resources);
         manifestChunk.assets?.forEach(resources.add, resources);

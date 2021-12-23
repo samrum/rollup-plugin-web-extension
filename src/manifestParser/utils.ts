@@ -1,5 +1,6 @@
 import path from "path";
 import { OutputBundle, OutputChunk } from "rollup";
+import { ManifestChunk } from "vite";
 import { ParseResult } from "./manifestParser";
 
 export function parseManifestHtmlFile<Manifest>(
@@ -85,4 +86,23 @@ export function updateContentSecurityPolicyForHmr(
   }
 
   return (contentSecurityPolicy += `; ${cspHmrScriptSrc}`);
+}
+
+export function rewriteCssInBundleForManifestChunk(
+  manifestChunk: ManifestChunk,
+  outputBundle: OutputBundle
+) {
+  if (!manifestChunk.css?.length) {
+    return;
+  }
+
+  const outputChunk = outputBundle[manifestChunk.file];
+  if (outputChunk.type !== "chunk") {
+    return;
+  }
+
+  outputChunk.code = outputChunk.code.replace(
+    manifestChunk.file.replace(".js", ".css"),
+    manifestChunk.css[0]
+  );
 }

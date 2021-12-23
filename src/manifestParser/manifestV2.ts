@@ -22,6 +22,7 @@ import {
   isSingleHtmlFilename,
   getOutputFileName,
   updateContentSecurityPolicyForHmr,
+  rewriteCssInBundleForManifestChunk,
 } from "./utils";
 import type { Manifest as ViteManifest } from "vite";
 import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
@@ -229,15 +230,7 @@ export default class ManifestV2 implements ManifestParser<Manifest> {
           return;
         }
 
-        if (manifestChunk.css?.length) {
-          const outputChunk = outputBundle[manifestChunk.file];
-          if (outputChunk.type === "chunk") {
-            outputChunk.code = outputChunk.code.replace(
-              manifestChunk.file.replace(".js", ".css"),
-              manifestChunk.css[0]
-            );
-          }
-        }
+        rewriteCssInBundleForManifestChunk(manifestChunk, outputBundle);
 
         manifestChunk.css?.forEach(
           webAccessibleResources.add,
