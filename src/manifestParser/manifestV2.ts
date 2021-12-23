@@ -1,17 +1,9 @@
-import path from "path";
-import {
-  copy,
-  emptyDir,
-  ensureDir,
-  readFile,
-  readFileSync,
-  writeFile,
-} from "fs-extra";
+import { copy, emptyDir, readFileSync, writeFile } from "fs-extra";
 import {
   getContentScriptLoaderFile,
   getScriptHtmlLoaderFile,
 } from "../utils/loader";
-import { getVirtualModule, setVirtualModule } from "../utils/virtualModule";
+import { setVirtualModule } from "../utils/virtualModule";
 import ManifestParser, {
   ManifestParserConfig,
   ParseResult,
@@ -27,6 +19,11 @@ import {
 import type { Manifest as ViteManifest } from "vite";
 import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
 import { OutputBundle } from "rollup";
+import {
+  getHmrServerOrigin,
+  writeManifestContentScriptFiles,
+  writeManifestHtmlFiles,
+} from "../utils/devServer";
 
 type Manifest = chrome.runtime.ManifestV2;
 type ManifestParseResult = ParseResult<Manifest>;
@@ -52,73 +49,19 @@ export default class ManifestV2 implements ManifestParser<Manifest> {
     manifest: Manifest,
     devServerPort: number
   ): Promise<void> {
-    await emptyDir(this.config.viteConfig.build.outDir);
-    copy("public", this.config.viteConfig.build.outDir);
+    const hmrServerOrigin = getHmrServerOrigin(this.config, devServerPort);
+    const outDir = this.config.viteConfig.build.outDir;
 
-    if (typeof this.config.viteConfig.server.hmr! === "boolean") {
-      throw new Error("Vite HMR is misconfigured");
-    }
+    await emptyDir(outDir);
+    copy("public", outDir);
 
-    const hmrServerOrigin = `http://${
-      this.config.viteConfig.server.hmr!.host
-    }:${devServerPort}`;
+    writeManifestHtmlFiles(
+      this.#getManifestFileNames(manifest),
+      hmrServerOrigin,
+      outDir
+    );
 
-    for (const fileName of this.#getManifestFileNames(manifest)) {
-      let content =
-        getVirtualModule(fileName) ??
-        (await readFile(fileName, {
-          encoding: "utf-8",
-        }));
-
-      // update absolute paths
-      content = content.replace('src="/', `src="${hmrServerOrigin}/`);
-
-      // update relative paths
-      const inputFileDir = path.dirname(fileName);
-      content = content.replace(
-        'src="./',
-        `src="${hmrServerOrigin}/${inputFileDir ? `${inputFileDir}/` : ""}`
-      );
-
-      const outFile = `${this.config.viteConfig.build.outDir}/${fileName}`;
-
-      const outFileDir = path.dirname(outFile);
-
-      await ensureDir(outFileDir);
-
-      await writeFile(outFile, content);
-    }
-
-    if (manifest.content_scripts) {
-      for (const [
-        contentScriptIndex,
-        script,
-      ] of manifest.content_scripts.entries()) {
-        if (!script.js) {
-          continue;
-        }
-
-        for (const [scriptJsIndex, fileName] of script.js.entries()) {
-          const outputFileName = getOutputFileName(fileName);
-
-          const scriptLoaderFile = getContentScriptLoaderFile(
-            outputFileName,
-            `${hmrServerOrigin}/${fileName}`
-          );
-
-          manifest.content_scripts[contentScriptIndex].js![scriptJsIndex] =
-            scriptLoaderFile.fileName;
-
-          const outFile = `${this.config.viteConfig.build.outDir}/${scriptLoaderFile.fileName}`;
-
-          const outFileDir = path.dirname(outFile);
-
-          await ensureDir(outFileDir);
-
-          await writeFile(outFile, scriptLoaderFile.source);
-        }
-      }
-    }
+    writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
 
     manifest.content_security_policy = updateContentSecurityPolicyForHmr(
       manifest.content_security_policy,

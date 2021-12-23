@@ -3,7 +3,7 @@ import { OutputBundle, OutputChunk } from "rollup";
 import { ManifestChunk } from "vite";
 import { ParseResult } from "../manifestParser/manifestParser";
 
-export function parseManifestHtmlFile<Manifest>(
+export function parseManifestHtmlFile<Manifest extends chrome.runtime.Manifest>(
   htmlFileName: string | undefined,
   result: ParseResult<Manifest>
 ): ParseResult<Manifest> {

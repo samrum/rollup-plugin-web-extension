@@ -1,6 +1,5 @@
 import fs from "fs";
-import path from "path";
-import { copy, emptyDir, ensureDir, readFile, writeFile } from "fs-extra";
+import { copy, emptyDir, writeFile } from "fs-extra";
 import ManifestParser, {
   ManifestParserConfig,
   ParseResult,
@@ -13,7 +12,6 @@ import {
   rewriteCssInBundleForManifestChunk,
   updateContentSecurityPolicyForHmr,
 } from "../utils/manifest";
-import { getVirtualModule } from "../utils/virtualModule";
 import type { OutputBundle } from "rollup";
 import {
   getContentScriptLoaderFile,
@@ -21,6 +19,12 @@ import {
 } from "../utils/loader";
 import { Manifest as ViteManifest } from "vite";
 import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
+import {
+  getHmrServerOrigin,
+  writeManifestContentScriptFiles,
+  writeManifestHtmlFiles,
+  writeManifestServiceWorkerFiles,
+} from "../utils/devServer";
 
 type Manifest = chrome.runtime.ManifestV3;
 type ManifestParseResult = ParseResult<Manifest>;
@@ -112,91 +116,22 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
     manifest: Manifest,
     devServerPort: number
   ): Promise<void> {
-    await emptyDir(this.config.viteConfig.build.outDir);
-    copy("public", this.config.viteConfig.build.outDir);
+    const hmrServerOrigin = getHmrServerOrigin(this.config, devServerPort);
 
-    if (typeof this.config.viteConfig.server.hmr! === "boolean") {
-      throw new Error("Vite HMR is misconfigured");
-    }
+    const outDir = this.config.viteConfig.build.outDir;
 
-    const hmrServerOrigin = `http://${
-      this.config.viteConfig.server.hmr!.host
-    }:${devServerPort}`;
+    await emptyDir(outDir);
+    copy("public", outDir);
 
-    for (const fileName of this.#getManifestFileNames(manifest)) {
-      let content =
-        getVirtualModule(fileName) ??
-        (await readFile(fileName, {
-          encoding: "utf-8",
-        }));
+    writeManifestHtmlFiles(
+      this.#getManifestFileNames(manifest),
+      hmrServerOrigin,
+      outDir
+    );
 
-      // update root paths
-      content = content.replace('src="/', `src="${hmrServerOrigin}/`);
+    writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
 
-      // update relative paths
-      const inputFileDir = path.dirname(fileName);
-      content = content.replace(
-        'src="./',
-        `src="${hmrServerOrigin}/${inputFileDir ? `${inputFileDir}/` : ""}`
-      );
-
-      const outFile = `${this.config.viteConfig.build.outDir}/${fileName}`;
-
-      const outFileDir = path.dirname(outFile);
-
-      await ensureDir(outFileDir);
-
-      await writeFile(outFile, content);
-    }
-
-    if (manifest.background?.service_worker) {
-      const fileName = manifest.background?.service_worker;
-
-      const serviceWorkerLoader = getServiceWorkerLoaderFile(
-        `${hmrServerOrigin}/${fileName}`
-      );
-
-      manifest.background.service_worker = serviceWorkerLoader.fileName;
-
-      const outFile = `${this.config.viteConfig.build.outDir}/${serviceWorkerLoader.fileName}`;
-
-      const outFileDir = path.dirname(outFile);
-
-      await ensureDir(outFileDir);
-
-      await writeFile(outFile, serviceWorkerLoader.source);
-    }
-
-    if (manifest.content_scripts) {
-      for (const [
-        contentScriptIndex,
-        script,
-      ] of manifest.content_scripts.entries()) {
-        if (!script.js) {
-          continue;
-        }
-
-        for (const [scriptJsIndex, fileName] of script.js.entries()) {
-          const outputFileName = getOutputFileName(fileName);
-
-          const scriptLoaderFile = getContentScriptLoaderFile(
-            outputFileName,
-            `${hmrServerOrigin}/${fileName}`
-          );
-
-          manifest.content_scripts[contentScriptIndex].js![scriptJsIndex] =
-            scriptLoaderFile.fileName;
-
-          const outFile = `${this.config.viteConfig.build.outDir}/${scriptLoaderFile.fileName}`;
-
-          const outFileDir = path.dirname(outFile);
-
-          await ensureDir(outFileDir);
-
-          await writeFile(outFile, scriptLoaderFile.source);
-        }
-      }
-    }
+    writeManifestServiceWorkerFiles(manifest, hmrServerOrigin, outDir);
 
     manifest.content_security_policy ??= {};
 
