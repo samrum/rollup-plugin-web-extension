@@ -6,7 +6,7 @@ export default class ManifestParserFactory {
   static getParser(
     manifestVersion: number,
     parserConfig: ManifestParserConfig
-  ): ManifestParser {
+  ): ManifestParser<chrome.runtime.Manifest> {
     switch (manifestVersion) {
       case 2:
         return new ManifestV2(parserConfig);

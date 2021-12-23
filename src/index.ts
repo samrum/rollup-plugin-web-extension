@@ -21,7 +21,7 @@ export default function webExtension(
 
   let outputManifest: chrome.runtime.Manifest;
   let emitQueue: EmittedFile[] = [];
-  let manifestParser: ManifestParser | undefined;
+  let manifestParser: ManifestParser<chrome.runtime.Manifest> | undefined;
 
   return {
     name: "webExtension",

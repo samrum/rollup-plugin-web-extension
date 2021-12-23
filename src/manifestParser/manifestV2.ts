@@ -23,20 +23,17 @@ import {
   getOutputFileName,
   updateContentSecurityPolicyForHmr,
 } from "./utils";
-import { Manifest } from "vite";
+import type { Manifest as ViteManifest } from "vite";
 import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
 import { OutputBundle } from "rollup";
 
-interface ManifestV2ParseResult extends ParseResult {
-  manifest: chrome.runtime.ManifestV2;
-}
+type Manifest = chrome.runtime.ManifestV2;
+type ManifestParseResult = ParseResult<Manifest>;
 
-export default class ManifestV2 implements ManifestParser {
+export default class ManifestV2 implements ManifestParser<Manifest> {
   constructor(private config: ManifestParserConfig) {}
 
-  async parseManifest(
-    manifest: ManifestV2ParseResult["manifest"]
-  ): Promise<ManifestV2ParseResult> {
+  async parseManifest(manifest: Manifest): Promise<ManifestParseResult> {
     return pipe(
       this,
       {
@@ -51,9 +48,9 @@ export default class ManifestV2 implements ManifestParser {
   }
 
   async writeServeBuild(
-    manifest: chrome.runtime.ManifestV2,
+    manifest: Manifest,
     devServerPort: number
-  ) {
+  ): Promise<void> {
     await emptyDir(this.config.viteConfig.build.outDir);
     copy("public", this.config.viteConfig.build.outDir);
 
@@ -133,9 +130,7 @@ export default class ManifestV2 implements ManifestParser {
     );
   }
 
-  #parseManifestHtmlFiles(
-    result: ManifestV2ParseResult
-  ): ManifestV2ParseResult {
+  #parseManifestHtmlFiles(result: ManifestParseResult): ManifestParseResult {
     this.#getManifestFileNames(result.manifest).forEach((htmlFileName) =>
       parseManifestHtmlFile(htmlFileName, result)
     );
@@ -143,7 +138,7 @@ export default class ManifestV2 implements ManifestParser {
     return result;
   }
 
-  #getManifestFileNames(manifest: chrome.runtime.ManifestV2): string[] {
+  #getManifestFileNames(manifest: Manifest): string[] {
     return [
       manifest.background?.page,
       manifest.browser_action?.default_popup,
@@ -153,8 +148,8 @@ export default class ManifestV2 implements ManifestParser {
   }
 
   #parseManifestContentScripts(
-    result: ManifestV2ParseResult
-  ): ManifestV2ParseResult {
+    result: ManifestParseResult
+  ): ManifestParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile) => {
         const outputFile = getOutputFileName(scriptFile);
@@ -175,8 +170,8 @@ export default class ManifestV2 implements ManifestParser {
   }
 
   #parseManifestBackgroundScripts(
-    result: ManifestV2ParseResult
-  ): ManifestV2ParseResult {
+    result: ManifestParseResult
+  ): ManifestParseResult {
     if (!result.manifest.background?.scripts) {
       return result;
     }
@@ -205,11 +200,11 @@ export default class ManifestV2 implements ManifestParser {
   }
 
   async parseViteManifest(
-    viteManifest: Manifest,
-    outputManifest: ManifestV2ParseResult["manifest"],
+    viteManifest: ViteManifest,
+    outputManifest: Manifest,
     outputBundle: OutputBundle
-  ): Promise<ManifestV2ParseResult> {
-    let result: ManifestV2ParseResult = {
+  ): Promise<ManifestParseResult> {
+    let result: ManifestParseResult = {
       inputScripts: [],
       emitFiles: [],
       manifest: outputManifest,
@@ -219,10 +214,10 @@ export default class ManifestV2 implements ManifestParser {
   }
 
   #parseBundleContentScripts(
-    result: ManifestV2ParseResult,
-    viteManifest: Manifest,
+    result: ManifestParseResult,
+    viteManifest: ViteManifest,
     outputBundle: OutputBundle
-  ): ManifestV2ParseResult {
+  ): ManifestParseResult {
     const webAccessibleResources = new Set(
       result.manifest.web_accessible_resources ?? []
     );

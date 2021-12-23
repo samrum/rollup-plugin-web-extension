@@ -18,19 +18,16 @@ import {
   getContentScriptLoaderFile,
   getServiceWorkerLoaderFile,
 } from "../utils/loader";
-import { Manifest } from "vite";
+import { Manifest as ViteManifest } from "vite";
 import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
 
-interface ManifestV3ParseResult extends ParseResult {
-  manifest: chrome.runtime.ManifestV3;
-}
+type Manifest = chrome.runtime.ManifestV3;
+type ManifestParseResult = ParseResult<Manifest>;
 
-export default class ManifestV3 implements ManifestParser {
+export default class ManifestV3 implements ManifestParser<Manifest> {
   constructor(private config: ManifestParserConfig) {}
 
-  async parseManifest(
-    manifest: ManifestV3ParseResult["manifest"]
-  ): Promise<ManifestV3ParseResult> {
+  async parseManifest(manifest: Manifest): Promise<ManifestParseResult> {
     return pipe(
       this,
       {
@@ -44,9 +41,7 @@ export default class ManifestV3 implements ManifestParser {
     );
   }
 
-  #parseManifestHtmlFiles(
-    result: ManifestV3ParseResult
-  ): ManifestV3ParseResult {
+  #parseManifestHtmlFiles(result: ManifestParseResult): ManifestParseResult {
     const htmlFileNames: string[] = this.#getManifestFileNames(result.manifest);
 
     htmlFileNames.forEach((htmlFileName) =>
@@ -73,8 +68,8 @@ export default class ManifestV3 implements ManifestParser {
   }
 
   #parseManifestContentScripts(
-    result: ManifestV3ParseResult
-  ): ManifestV3ParseResult {
+    result: ManifestParseResult
+  ): ManifestParseResult {
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFile) => {
         const outputFile = getOutputFileName(scriptFile);
@@ -95,8 +90,8 @@ export default class ManifestV3 implements ManifestParser {
   }
 
   #parseManifestBackgroundServiceWorker(
-    result: ManifestV3ParseResult
-  ): ManifestV3ParseResult {
+    result: ManifestParseResult
+  ): ManifestParseResult {
     if (!result.manifest.background?.service_worker) {
       return result;
     }
@@ -217,11 +212,11 @@ export default class ManifestV3 implements ManifestParser {
   }
 
   async parseViteManifest(
-    viteManifest: Manifest,
-    outputManifest: ManifestV3ParseResult["manifest"],
+    viteManifest: ViteManifest,
+    outputManifest: Manifest,
     outputBundle: OutputBundle
-  ): Promise<ManifestV3ParseResult> {
-    let result: ManifestV3ParseResult = {
+  ): Promise<ManifestParseResult> {
+    let result: ManifestParseResult = {
       inputScripts: [],
       emitFiles: [],
       manifest: outputManifest,
@@ -238,9 +233,9 @@ export default class ManifestV3 implements ManifestParser {
   }
 
   #parseBundleServiceWorker(
-    result: ManifestV3ParseResult,
-    viteManifest: Manifest
-  ): ManifestV3ParseResult {
+    result: ManifestParseResult,
+    viteManifest: ViteManifest
+  ): ManifestParseResult {
     const serviceWorkerFileName = result.manifest.background?.service_worker;
 
     if (!serviceWorkerFileName) {
@@ -266,10 +261,10 @@ export default class ManifestV3 implements ManifestParser {
   }
 
   #parseBundleContentScripts(
-    result: ManifestV3ParseResult,
-    viteManifest: Manifest,
+    result: ManifestParseResult,
+    viteManifest: ViteManifest,
     outputBundle: OutputBundle
-  ): ManifestV3ParseResult {
+  ): ManifestParseResult {
     const webAccessibleResources = new Set(
       result.manifest.web_accessible_resources ?? []
     );

@@ -2,10 +2,10 @@ import path from "path";
 import { OutputBundle, OutputChunk } from "rollup";
 import { ParseResult } from "./manifestParser";
 
-export function parseManifestHtmlFile(
+export function parseManifestHtmlFile<Manifest>(
   htmlFileName: string | undefined,
-  result: ParseResult
-): ParseResult {
+  result: ParseResult<Manifest>
+): ParseResult<Manifest> {
   if (!htmlFileName) {
     return result;
   }
