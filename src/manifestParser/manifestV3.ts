@@ -142,7 +142,7 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
       );
 
     await writeFile(
-      `${this.config.viteConfig.build.outDir}/manifest.json`,
+      `${outDir}/manifest.json`,
       JSON.stringify(manifest, null, 2)
     );
   }

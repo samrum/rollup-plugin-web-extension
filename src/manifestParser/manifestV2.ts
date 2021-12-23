@@ -45,35 +45,6 @@ export default class ManifestV2 implements ManifestParser<Manifest> {
     );
   }
 
-  async writeServeBuild(
-    manifest: Manifest,
-    devServerPort: number
-  ): Promise<void> {
-    const hmrServerOrigin = getHmrServerOrigin(this.config, devServerPort);
-    const outDir = this.config.viteConfig.build.outDir;
-
-    await emptyDir(outDir);
-    copy("public", outDir);
-
-    writeManifestHtmlFiles(
-      this.#getManifestFileNames(manifest),
-      hmrServerOrigin,
-      outDir
-    );
-
-    writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
-
-    manifest.content_security_policy = updateContentSecurityPolicyForHmr(
-      manifest.content_security_policy,
-      hmrServerOrigin
-    );
-
-    await writeFile(
-      `${this.config.viteConfig.build.outDir}/manifest.json`,
-      JSON.stringify(manifest, null, 2)
-    );
-  }
-
   #parseManifestHtmlFiles(result: ManifestParseResult): ManifestParseResult {
     this.#getManifestFileNames(result.manifest).forEach((htmlFileName) =>
       parseManifestHtmlFile(htmlFileName, result)
@@ -141,6 +112,35 @@ export default class ManifestV2 implements ManifestParser<Manifest> {
     result.manifest.background.page = htmlLoaderFile.fileName;
 
     return result;
+  }
+
+  async writeServeBuild(
+    manifest: Manifest,
+    devServerPort: number
+  ): Promise<void> {
+    const hmrServerOrigin = getHmrServerOrigin(this.config, devServerPort);
+    const outDir = this.config.viteConfig.build.outDir;
+
+    await emptyDir(outDir);
+    copy("public", outDir);
+
+    writeManifestHtmlFiles(
+      this.#getManifestFileNames(manifest),
+      hmrServerOrigin,
+      outDir
+    );
+
+    writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
+
+    manifest.content_security_policy = updateContentSecurityPolicyForHmr(
+      manifest.content_security_policy,
+      hmrServerOrigin
+    );
+
+    await writeFile(
+      `${outDir}/manifest.json`,
+      JSON.stringify(manifest, null, 2)
+    );
   }
 
   async parseViteManifest(
