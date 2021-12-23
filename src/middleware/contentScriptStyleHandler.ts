@@ -1,6 +1,8 @@
 import { Connect } from "vite";
 import getEtag from "etag";
 
+// Add support for changing the injection location for styles
+//  To support HMR styles in shadow DOM rendered content
 const contentScriptStyleHandler: Connect.NextHandleFunction = (
   _req,
   res,
