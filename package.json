@@ -1,5 +1,5 @@
 {
-  "name": "@samrum/rollup-plugin-web-extension",
+  "name": "@samrum/vite-plugin-web-extension",
   "version": "0.9.3",
   "description": "A rollup plugin for generating cross browser platform, ES module based web extensions",
   "main": "dist/index.js",
@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/samrum/rollup-plugin-web-extension.git"
+    "url": "git+https://github.com/samrum/vite-plugin-web-extension.git"
   },
   "keywords": [
     "rollup",
@@ -43,9 +43,9 @@
   "author": "Ruben Medina",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/samrum/rollup-plugin-web-extension/issues"
+    "url": "https://github.com/samrum/vite-plugin-web-extension/issues"
   },
-  "homepage": "https://github.com/samrum/rollup-plugin-web-extension#readme",
+  "homepage": "https://github.com/samrum/vite-plugin-web-extension#readme",
   "devDependencies": {
     "@rollup/plugin-sucrase": "^4.0.0",
     "@rollup/plugin-typescript": "^8.2.5",
