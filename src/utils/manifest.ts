@@ -76,7 +76,7 @@ export function rewriteCssInBundleForManifestChunk(
   }
 
   outputChunk.code = outputChunk.code.replace(
-    manifestChunk.file.replace(".js", ".css"),
+    new RegExp(manifestChunk.file.replace(".js", ".css"), "g"),
     manifestChunk.css[0]
   );
 }

@@ -3,7 +3,7 @@ import type { Manifest, ResolvedConfig } from "vite";
 
 // Vite asset helper rewrites usages of import.meta.url to self.location for broader
 //   browser support, but content scripts need to reference assets via import.meta.url
-// This transform undos self.location back to import.meta.url
+// This transform rewrites self.location back to import.meta.url
 export function transformSelfLocationAssets(
   code: string,
   resolvedViteConfig: ResolvedConfig
