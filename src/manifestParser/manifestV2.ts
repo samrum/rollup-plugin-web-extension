@@ -124,13 +124,13 @@ export default class ManifestV2 implements ManifestParser<Manifest> {
     await emptyDir(outDir);
     copy("public", outDir);
 
-    writeManifestHtmlFiles(
+    await writeManifestHtmlFiles(
       this.#getManifestFileNames(manifest),
       hmrServerOrigin,
       outDir
     );
 
-    writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
+    await writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
 
     manifest.content_security_policy = updateContentSecurityPolicyForHmr(
       manifest.content_security_policy,

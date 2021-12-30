@@ -123,15 +123,15 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
     await emptyDir(outDir);
     copy("public", outDir);
 
-    writeManifestHtmlFiles(
+    await writeManifestHtmlFiles(
       this.#getManifestFileNames(manifest),
       hmrServerOrigin,
       outDir
     );
 
-    writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
+    await writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
 
-    writeManifestServiceWorkerFiles(manifest, hmrServerOrigin, outDir);
+    await writeManifestServiceWorkerFiles(manifest, hmrServerOrigin, outDir);
 
     manifest.content_security_policy ??= {};
 
