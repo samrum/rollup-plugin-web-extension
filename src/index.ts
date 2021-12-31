@@ -6,7 +6,11 @@ import ManifestParser from "./manifestParser/manifestParser";
 import ManifestParserFactory from "./manifestParser/manifestParserFactory";
 import { getVirtualModule } from "./utils/virtualModule";
 import contentScriptStyleHandler from "./middleware/contentScriptStyleHandler";
-import { transformSelfLocationAssets } from "./utils/vite";
+import {
+  overrideManifestPlugin,
+  transformSelfLocationAssets,
+  updateConfigForExtensionSupport,
+} from "./utils/vite";
 
 export default function webExtension(
   pluginOptions: RollupWebExtensionOptions
@@ -15,8 +19,7 @@ export default function webExtension(
     throw new Error("Missing manifest definition");
   }
 
-  const inputManifest: chrome.runtime.Manifest = pluginOptions.manifest;
-
+  let inputManifest = pluginOptions.manifest;
   let viteConfig: ResolvedConfig;
   let emitQueue: EmittedFile[] = [];
   let manifestParser: ManifestParser<chrome.runtime.Manifest> | undefined;
@@ -25,75 +28,36 @@ export default function webExtension(
     name: "webExtension",
     enforce: "post", // required to revert vite asset self.location transform to import.meta.url
 
-    config: (config) => {
-      config.build ??= {};
-      config.build.manifest = true;
-      config.build.target = ["chrome64", "firefox89"];
-
-      config.build.rollupOptions ??= {};
-      config.build.rollupOptions.input ??= undefined;
-
-      config.server ??= {};
-
-      if (config.server.hmr === true || !config.server.hmr) {
-        config.server.hmr = {};
-      }
-
-      config.server.hmr.protocol = "ws"; // required for content script hmr to work on https
-      config.server.hmr.host = "localhost";
-
-      return config;
+    config(config) {
+      return updateConfigForExtensionSupport(config);
     },
 
     configResolved(resolvedConfig) {
       viteConfig = resolvedConfig;
 
-      const manifestPlugin = resolvedConfig.plugins.find(
-        ({ name }) => name === "vite:manifest"
-      )!;
+      overrideManifestPlugin({
+        viteConfig,
+        onManifestGenerated: async (
+          manifestSource,
+          pluginContext,
+          outputBundle
+        ) => {
+          const { emitFiles, manifest } =
+            await manifestParser!.parseViteManifest(
+              JSON.parse(manifestSource) as Manifest,
+              inputManifest,
+              outputBundle
+            );
 
-      if (!manifestPlugin) {
-        return;
-      }
+          emitFiles.forEach(pluginContext.emitFile);
 
-      const generateBundle = manifestPlugin.generateBundle!;
-      manifestPlugin.generateBundle = async function (...args) {
-        let manifestSource = "";
-
-        await generateBundle.apply(
-          {
-            ...this,
-            emitFile: (file) => {
-              if (file.type === "asset" && file.fileName === "manifest.json") {
-                manifestSource = file.source as string;
-
-                return "manifestIgnoredId";
-              }
-
-              return this.emitFile(file);
-            },
-          },
-          args
-        );
-
-        if (!manifestSource) {
-          throw new Error("Failed to get vite generated manifest file!");
-        }
-
-        const { emitFiles, manifest } = await manifestParser!.parseViteManifest(
-          JSON.parse(manifestSource) as Manifest,
-          inputManifest,
-          args[1]
-        );
-
-        emitFiles.forEach(this.emitFile);
-
-        this.emitFile({
-          type: "asset",
-          fileName: "manifest.json",
-          source: JSON.stringify(manifest, null, 2),
-        });
-      };
+          pluginContext.emitFile({
+            type: "asset",
+            fileName: "manifest.json",
+            source: JSON.stringify(manifest, null, 2),
+          });
+        },
+      });
     },
 
     configureServer(server) {
@@ -115,9 +79,8 @@ export default function webExtension(
         }
       );
 
-      const { inputScripts, emitFiles } = await manifestParser.parseManifest(
-        inputManifest
-      );
+      const { inputScripts, emitFiles, manifest } =
+        await manifestParser.parseManifest(inputManifest);
 
       options.input = addInputScriptsToOptionsInput(
         inputScripts,
@@ -126,26 +89,23 @@ export default function webExtension(
 
       emitQueue = emitQueue.concat(emitFiles);
 
+      inputManifest = manifest;
+
       return options;
     },
 
     buildStart() {
       emitQueue.forEach((file) => {
-        if (!file.fileName) {
-          return;
-        }
-
         this.emitFile(file);
-        this.addWatchFile(file.fileName);
+        this.addWatchFile(file.fileName ?? file.name!);
       });
       emitQueue = [];
     },
 
     resolveId(id) {
       const module = getVirtualModule(id);
-      if (module) return id;
 
-      return null;
+      return module ? id : null;
     },
 
     load(id) {

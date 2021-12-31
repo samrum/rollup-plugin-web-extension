@@ -1,6 +1,29 @@
 import MagicString from "magic-string";
-import type { Manifest, ManifestChunk, ResolvedConfig } from "vite";
+import { OutputBundle, PluginContext } from "rollup";
+import type { Manifest, ManifestChunk, ResolvedConfig, UserConfig } from "vite";
 import { getContentScriptLoaderFile } from "./loader";
+
+export function updateConfigForExtensionSupport(
+  config: UserConfig
+): UserConfig {
+  config.build ??= {};
+  config.build.manifest = true;
+  config.build.target = ["chrome64", "firefox89"]; // minimum browsers with import.meta.url and content script dynamic import
+
+  config.build.rollupOptions ??= {};
+  config.build.rollupOptions.input ??= undefined;
+
+  config.server ??= {};
+
+  if (config.server.hmr === true || !config.server.hmr) {
+    config.server.hmr = {};
+  }
+
+  config.server.hmr.protocol = "ws"; // required for content script hmr to work on https
+  config.server.hmr.host = "localhost";
+
+  return config;
+}
 
 // Vite asset helper rewrites usages of import.meta.url to self.location for broader
 //   browser support, but content scripts need to reference assets via import.meta.url
@@ -83,4 +106,51 @@ export function getContentScriptLoaderForManifestChunk(
   }
 
   return getContentScriptLoaderFile(manifestChunk.src!, manifestChunk.file);
+}
+
+export function overrideManifestPlugin({
+  viteConfig,
+  onManifestGenerated,
+}: {
+  viteConfig: ResolvedConfig;
+  onManifestGenerated: (
+    manifestSource: string,
+    pluginContext: PluginContext,
+    outputBundle: OutputBundle
+  ) => Promise<void>;
+}) {
+  const manifestPlugin = viteConfig.plugins.find(
+    ({ name }) => name === "vite:manifest"
+  )!;
+
+  if (!manifestPlugin) {
+    return;
+  }
+
+  const _generateBundle = manifestPlugin.generateBundle!;
+  manifestPlugin.generateBundle = async function (...args) {
+    let manifestSource = "";
+
+    await _generateBundle.apply(
+      {
+        ...this,
+        emitFile: (file) => {
+          if (file.type === "asset" && file.fileName === "manifest.json") {
+            manifestSource = file.source as string;
+
+            return "manifestIgnoredId";
+          }
+
+          return this.emitFile(file);
+        },
+      },
+      args
+    );
+
+    if (!manifestSource) {
+      throw new Error("Failed to get vite generated manifest file!");
+    }
+
+    await onManifestGenerated(manifestSource, this, args[1]);
+  };
 }
