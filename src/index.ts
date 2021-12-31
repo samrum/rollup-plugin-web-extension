@@ -47,17 +47,6 @@ export default function webExtension(
       return config;
     },
 
-    configureServer(server) {
-      server.middlewares.use(contentScriptStyleHandler);
-
-      server.httpServer!.once("listening", () => {
-        manifestParser!.writeServeBuild(
-          outputManifest,
-          server.config.server.port!
-        );
-      });
-    },
-
     configResolved(resolvedConfig) {
       viteConfig = resolvedConfig;
 
@@ -109,16 +98,15 @@ export default function webExtension(
       };
     },
 
-    async transform(code) {
-      return transformSelfLocationAssets(code, viteConfig);
-    },
+    configureServer(server) {
+      server.middlewares.use(contentScriptStyleHandler);
 
-    resolveImportMeta(prop, options) {
-      if (prop === "CURRENT_CONTENT_SCRIPT_CSS_URL") {
-        return `"${options.chunkId.replace(".js", ".css")}"`;
-      }
-
-      return null;
+      server.httpServer!.once("listening", () => {
+        manifestParser!.writeServeBuild(
+          outputManifest,
+          server.config.server.port!
+        );
+      });
     },
 
     async options(options) {
@@ -135,8 +123,9 @@ export default function webExtension(
         }
       );
 
-      const { inputScripts, emitFiles, manifest } =
-        await manifestParser.parseManifest(outputManifest);
+      const { inputScripts, emitFiles } = await manifestParser.parseManifest(
+        outputManifest
+      );
 
       options.input = addInputScriptsToOptionsInput(
         inputScripts,
@@ -145,9 +134,19 @@ export default function webExtension(
 
       emitQueue = emitQueue.concat(emitFiles);
 
-      outputManifest = manifest;
-
       return options;
+    },
+
+    buildStart() {
+      emitQueue.forEach((file) => {
+        if (!file.fileName) {
+          return;
+        }
+
+        this.emitFile(file);
+        this.addWatchFile(file.fileName);
+      });
+      emitQueue = [];
     },
 
     resolveId(id) {
@@ -161,16 +160,16 @@ export default function webExtension(
       return getVirtualModule(id);
     },
 
-    buildStart() {
-      emitQueue.forEach((file) => {
-        if (!file.fileName) {
-          return;
-        }
+    async transform(code) {
+      return transformSelfLocationAssets(code, viteConfig);
+    },
 
-        this.emitFile(file);
-        this.addWatchFile(file.fileName);
-      });
-      emitQueue = [];
+    resolveImportMeta(prop, options) {
+      if (prop === "CURRENT_CONTENT_SCRIPT_CSS_URL") {
+        return `"${options.chunkId.replace(".js", ".css")}"`;
+      }
+
+      return null;
     },
   };
 }
