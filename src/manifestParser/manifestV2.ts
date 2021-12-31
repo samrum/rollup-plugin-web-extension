@@ -1,8 +1,5 @@
 import { copy, emptyDir, readFileSync, writeFile } from "fs-extra";
-import {
-  getContentScriptLoaderFile,
-  getScriptHtmlLoaderFile,
-} from "../utils/loader";
+import { getScriptHtmlLoaderFile } from "../utils/loader";
 import { setVirtualModule } from "../utils/virtualModule";
 import ManifestParser, {
   ManifestParserConfig,
@@ -17,7 +14,10 @@ import {
   rewriteCssInBundleForManifestChunk,
 } from "../utils/manifest";
 import type { Manifest as ViteManifest } from "vite";
-import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
+import {
+  getWebAccessibleFilesForManifestChunk,
+  getContentScriptLoaderForManifestChunk,
+} from "../utils/vite";
 import { OutputBundle } from "rollup";
 import {
   getHmrServerOrigin,
@@ -173,38 +173,20 @@ export default class ManifestV2 implements ManifestParser<Manifest> {
           return;
         }
 
-        rewriteCssInBundleForManifestChunk(manifestChunk, outputBundle);
-
-        manifestChunk.css?.forEach(
-          webAccessibleResources.add,
-          webAccessibleResources
-        );
-        manifestChunk.assets?.forEach(
-          webAccessibleResources.add,
-          webAccessibleResources
-        );
-
-        if (
-          !manifestChunk.imports?.length &&
-          !manifestChunk.dynamicImports?.length
-        ) {
-          script.js![index] = manifestChunk.file;
-
-          return;
-        }
-
-        const scriptLoaderFile = getContentScriptLoaderFile(
-          scriptFileName,
-          manifestChunk.file
-        );
+        const scriptLoaderFile =
+          getContentScriptLoaderForManifestChunk(manifestChunk);
 
         script.js![index] = scriptLoaderFile.fileName;
 
-        result.emitFiles.push({
-          type: "asset",
-          fileName: scriptLoaderFile.fileName,
-          source: scriptLoaderFile.source,
-        });
+        if (scriptLoaderFile.source) {
+          result.emitFiles.push({
+            type: "asset",
+            fileName: scriptLoaderFile.fileName,
+            source: scriptLoaderFile.source,
+          });
+        }
+
+        rewriteCssInBundleForManifestChunk(manifestChunk, outputBundle);
 
         getWebAccessibleFilesForManifestChunk(
           viteManifest,

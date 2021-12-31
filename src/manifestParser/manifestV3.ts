@@ -13,12 +13,12 @@ import {
   updateContentSecurityPolicyForHmr,
 } from "../utils/manifest";
 import type { OutputBundle } from "rollup";
-import {
-  getContentScriptLoaderFile,
-  getServiceWorkerLoaderFile,
-} from "../utils/loader";
+import { getServiceWorkerLoaderFile } from "../utils/loader";
 import { Manifest as ViteManifest } from "vite";
-import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
+import {
+  getWebAccessibleFilesForManifestChunk,
+  getContentScriptLoaderForManifestChunk,
+} from "../utils/vite";
 import {
   getHmrServerOrigin,
   writeManifestContentScriptFiles,
@@ -207,49 +207,36 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
 
     result.manifest.content_scripts?.forEach((script) => {
       script.js?.forEach((scriptFileName, index) => {
-        const resources = new Set<string>();
-
         const manifestChunk = viteManifest[scriptFileName];
         if (!manifestChunk) {
           return;
         }
 
-        rewriteCssInBundleForManifestChunk(manifestChunk, outputBundle);
-
-        manifestChunk.css?.forEach(resources.add, resources);
-        manifestChunk.assets?.forEach(resources.add, resources);
-
-        if (
-          !manifestChunk.imports?.length &&
-          !manifestChunk.dynamicImports?.length
-        ) {
-          script.js![index] = manifestChunk.file;
-
-          return;
-        }
-
-        const scriptLoaderFile = getContentScriptLoaderFile(
-          scriptFileName,
-          manifestChunk.file
-        );
+        const scriptLoaderFile =
+          getContentScriptLoaderForManifestChunk(manifestChunk);
 
         script.js![index] = scriptLoaderFile.fileName;
 
-        result.emitFiles.push({
-          type: "asset",
-          fileName: scriptLoaderFile.fileName,
-          source: scriptLoaderFile.source,
-        });
+        if (scriptLoaderFile.source) {
+          result.emitFiles.push({
+            type: "asset",
+            fileName: scriptLoaderFile.fileName,
+            source: scriptLoaderFile.source,
+          });
+        }
 
-        getWebAccessibleFilesForManifestChunk(
+        rewriteCssInBundleForManifestChunk(manifestChunk, outputBundle);
+
+        const resources = getWebAccessibleFilesForManifestChunk(
           viteManifest,
           scriptFileName
-        ).forEach(resources.add, resources);
-
-        webAccessibleResources.add({
-          resources: Array.from(resources),
-          matches: script.matches!,
-        });
+        );
+        if (resources.size) {
+          webAccessibleResources.add({
+            resources: Array.from(resources),
+            matches: script.matches!,
+          });
+        }
       });
     });
 

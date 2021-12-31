@@ -1,5 +1,6 @@
 import MagicString from "magic-string";
-import type { Manifest, ResolvedConfig } from "vite";
+import type { Manifest, ManifestChunk, ResolvedConfig } from "vite";
+import { getContentScriptLoaderFile } from "./loader";
 
 // Vite asset helper rewrites usages of import.meta.url to self.location for broader
 //   browser support, but content scripts need to reference assets via import.meta.url
@@ -52,17 +53,34 @@ export function getWebAccessibleFilesForManifestChunk(
 
   files.add(manifestChunk.file);
 
+  manifestChunk.css?.forEach(files.add, files);
+  manifestChunk.assets?.forEach(files.add, files);
+
   manifestChunk.imports?.forEach((chunkId) =>
     getWebAccessibleFilesForManifestChunk(viteManifest, chunkId).forEach(
-      (file) => files.add(file)
+      files.add,
+      files
     )
   );
 
   manifestChunk.dynamicImports?.forEach((chunkId) =>
     getWebAccessibleFilesForManifestChunk(viteManifest, chunkId).forEach(
-      (file) => files.add(file)
+      files.add,
+      files
     )
   );
 
   return files;
+}
+
+export function getContentScriptLoaderForManifestChunk(
+  manifestChunk: ManifestChunk
+): { fileName: string; source?: string } {
+  if (!manifestChunk.imports?.length && !manifestChunk.dynamicImports?.length) {
+    return {
+      fileName: manifestChunk.file,
+    };
+  }
+
+  return getContentScriptLoaderFile(manifestChunk.src!, manifestChunk.file);
 }
