@@ -160,7 +160,7 @@ export default function webExtension(
       return getVirtualModule(id);
     },
 
-    async transform(code) {
+    transform(code) {
       return transformSelfLocationAssets(code, viteConfig);
     },
 
