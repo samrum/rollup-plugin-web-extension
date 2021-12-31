@@ -15,11 +15,9 @@ export default function webExtension(
     throw new Error("Missing manifest definition");
   }
 
-  let viteConfig: ResolvedConfig;
-
   const inputManifest: chrome.runtime.Manifest = pluginOptions.manifest;
 
-  let outputManifest: chrome.runtime.Manifest;
+  let viteConfig: ResolvedConfig;
   let emitQueue: EmittedFile[] = [];
   let manifestParser: ManifestParser<chrome.runtime.Manifest> | undefined;
 
@@ -84,7 +82,7 @@ export default function webExtension(
 
         const { emitFiles, manifest } = await manifestParser!.parseViteManifest(
           JSON.parse(manifestSource) as Manifest,
-          outputManifest,
+          inputManifest,
           args[1]
         );
 
@@ -103,28 +101,22 @@ export default function webExtension(
 
       server.httpServer!.once("listening", () => {
         manifestParser!.writeServeBuild(
-          outputManifest,
+          inputManifest,
           server.config.server.port!
         );
       });
     },
 
     async options(options) {
-      if (!inputManifest.manifest_version) {
-        throw new Error("Missing manifest_version in manifest");
-      }
-
-      outputManifest = JSON.parse(JSON.stringify(inputManifest));
-
       manifestParser = ManifestParserFactory.getParser(
-        outputManifest.manifest_version,
+        inputManifest.manifest_version,
         {
           viteConfig,
         }
       );
 
       const { inputScripts, emitFiles } = await manifestParser.parseManifest(
-        outputManifest
+        inputManifest
       );
 
       options.input = addInputScriptsToOptionsInput(

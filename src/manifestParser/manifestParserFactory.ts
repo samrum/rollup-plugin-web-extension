@@ -4,7 +4,7 @@ import ManifestV3 from "./manifestV3";
 
 export default class ManifestParserFactory {
   static getParser(
-    manifestVersion: number,
+    manifestVersion: number | undefined,
     parserConfig: ManifestParserConfig
   ): ManifestParser<chrome.runtime.Manifest> {
     switch (manifestVersion) {
@@ -15,7 +15,7 @@ export default class ManifestParserFactory {
     }
 
     throw new Error(
-      `No parser available for manifest version ${manifestVersion}`
+      `No parser available for manifest_version ${manifestVersion ?? 0}`
     );
   }
 }
