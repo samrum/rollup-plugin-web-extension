@@ -1,12 +1,10 @@
 import type { Plugin } from "vite";
 
-type WebExtensionManifest = chrome.runtime.Manifest;
-
 interface RollupWebExtensionOptions {
   /**
    * The manifest file to use as a base for the generated extension
    */
-  manifest: WebExtensionManifest;
+  manifest: chrome.runtime.Manifest;
 }
 
 /**

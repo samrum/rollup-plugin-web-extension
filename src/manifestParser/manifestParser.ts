@@ -15,11 +15,14 @@ export interface ParseResult<Manifest extends chrome.runtime.Manifest> {
 export default abstract class ManifestParser<
   Manifest extends chrome.runtime.Manifest
 > {
-  constructor(protected viteConfig: ResolvedConfig) {}
+  constructor(
+    protected inputManifest: Manifest,
+    protected viteConfig: ResolvedConfig
+  ) {}
 
-  async parseInput(manifest: Manifest): Promise<ParseResult<Manifest>> {
+  async parseInput(): Promise<ParseResult<Manifest>> {
     const parseResult: ParseResult<Manifest> = {
-      manifest,
+      manifest: this.inputManifest,
       inputScripts: [],
       emitFiles: [],
     };
@@ -32,26 +35,22 @@ export default abstract class ManifestParser<
     );
   }
 
-  async writeDevBuild(
-    manifest: Manifest,
-    devServerPort: number
-  ): Promise<void> {
+  async writeDevBuild(devServerPort: number): Promise<void> {
     await this.createDevBuilder().writeBuild({
       devServerPort,
-      manifest,
-      manifestHtmlFiles: this.getHtmlFileNames(manifest),
+      manifest: this.inputManifest,
+      manifestHtmlFiles: this.getHtmlFileNames(this.inputManifest),
     });
   }
 
   async parseOutput(
     viteManifest: ViteManifest,
-    outputManifest: Manifest,
     outputBundle: OutputBundle
   ): Promise<ParseResult<Manifest>> {
     let result: ParseResult<Manifest> = {
       inputScripts: [],
       emitFiles: [],
-      manifest: outputManifest,
+      manifest: this.inputManifest,
     };
 
     result = await this.parseOutputContentScripts(
@@ -63,6 +62,12 @@ export default abstract class ManifestParser<
     for (const parseMethod of this.getParseOutputMethods()) {
       result = await parseMethod(result, viteManifest, outputBundle);
     }
+
+    result.emitFiles.push({
+      type: "asset",
+      fileName: "manifest.json",
+      source: JSON.stringify(result.manifest, null, 2),
+    });
 
     return result;
   }

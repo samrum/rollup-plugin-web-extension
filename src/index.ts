@@ -19,10 +19,11 @@ export default function webExtension(
     throw new Error("Missing manifest definition");
   }
 
-  let inputManifest = pluginOptions.manifest;
   let viteConfig: ResolvedConfig;
   let emitQueue: EmittedFile[] = [];
-  let manifestParser: ManifestParser<chrome.runtime.Manifest> | undefined;
+  let manifestParser:
+    | ManifestParser<chrome.runtime.ManifestV2>
+    | ManifestParser<chrome.runtime.ManifestV3>;
 
   return {
     name: "webExtension",
@@ -38,20 +39,12 @@ export default function webExtension(
       overrideManifestPlugin({
         viteConfig,
         onManifestGenerated: async (manifest, pluginContext, outputBundle) => {
-          const { emitFiles, manifest: extensionManifest } =
-            await manifestParser!.parseOutput(
-              manifest,
-              inputManifest,
-              outputBundle
-            );
+          const { emitFiles } = await manifestParser.parseOutput(
+            manifest,
+            outputBundle
+          );
 
           emitFiles.forEach(pluginContext.emitFile);
-
-          pluginContext.emitFile({
-            type: "asset",
-            fileName: "manifest.json",
-            source: JSON.stringify(extensionManifest, null, 2),
-          });
         },
       });
     },
@@ -60,21 +53,17 @@ export default function webExtension(
       server.middlewares.use(contentScriptStyleHandler);
 
       server.httpServer!.once("listening", () => {
-        manifestParser!.writeDevBuild(
-          inputManifest,
-          server.config.server.port!
-        );
+        manifestParser.writeDevBuild(server.config.server.port!);
       });
     },
 
     async options(options) {
       manifestParser = ManifestParserFactory.getParser(
-        inputManifest.manifest_version,
+        pluginOptions.manifest,
         viteConfig
       );
 
-      const { inputScripts, emitFiles, manifest } =
-        await manifestParser.parseInput(inputManifest);
+      const { inputScripts, emitFiles } = await manifestParser.parseInput();
 
       options.input = addInputScriptsToOptionsInput(
         inputScripts,
@@ -82,8 +71,6 @@ export default function webExtension(
       );
 
       emitQueue = emitQueue.concat(emitFiles);
-
-      inputManifest = manifest;
 
       return options;
     },

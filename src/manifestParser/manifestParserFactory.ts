@@ -5,20 +5,23 @@ import ManifestV3 from "./manifestV3";
 
 export default class ManifestParserFactory {
   static getParser(
-    manifestVersion: number | undefined,
+    manifest: chrome.runtime.Manifest,
     viteConfig: ResolvedConfig
   ):
     | ManifestParser<chrome.runtime.ManifestV2>
     | ManifestParser<chrome.runtime.ManifestV3> {
-    switch (manifestVersion) {
+    switch (manifest.manifest_version) {
       case 2:
-        return new ManifestV2(viteConfig);
+        return new ManifestV2(manifest, viteConfig);
       case 3:
-        return new ManifestV3(viteConfig);
+        return new ManifestV3(manifest, viteConfig);
+      default:
+        throw new Error(
+          `No parser available for manifest_version ${
+            // @ts-expect-error - Allow showing manifest version for invalid usage
+            manifest.manifest_version ?? 0
+          }`
+        );
     }
-
-    throw new Error(
-      `No parser available for manifest_version ${manifestVersion ?? 0}`
-    );
   }
 }
