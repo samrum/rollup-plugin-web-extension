@@ -4,7 +4,6 @@ import DevBuilder from "../devBuilder/devBuilder";
 import { getOutputFileName } from "../utils/file";
 import type { Manifest as ViteManifest } from "vite";
 import { EmittedFile, OutputBundle } from "rollup";
-import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
 import { getContentScriptLoaderForManifestChunk } from "../utils/loader";
 
 export interface ParseResult<Manifest extends chrome.runtime.Manifest> {
@@ -159,7 +158,7 @@ export default abstract class ManifestParser<
 
     return {
       scriptFileName: scriptLoaderFile.fileName,
-      webAccessibleFiles: getWebAccessibleFilesForManifestChunk(
+      webAccessibleFiles: this.getWebAccessibleFilesForManifestChunk(
         viteManifest,
         scriptFileName,
         Boolean(scriptLoaderFile.source)
@@ -191,5 +190,41 @@ export default abstract class ManifestParser<
       new RegExp(manifestChunk.file.replace(".js", ".css"), "g"),
       manifestChunk.css[0]
     );
+  }
+
+  private getWebAccessibleFilesForManifestChunk(
+    viteManifest: ViteManifest,
+    chunkId: string,
+    includeChunkFile = true
+  ): Set<string> {
+    const files = new Set<string>();
+
+    const manifestChunk = viteManifest[chunkId];
+    if (!manifestChunk) {
+      return files;
+    }
+
+    if (includeChunkFile) {
+      files.add(manifestChunk.file);
+    }
+
+    manifestChunk.css?.forEach(files.add, files);
+    manifestChunk.assets?.forEach(files.add, files);
+
+    manifestChunk.imports?.forEach((chunkId) =>
+      this.getWebAccessibleFilesForManifestChunk(viteManifest, chunkId).forEach(
+        files.add,
+        files
+      )
+    );
+
+    manifestChunk.dynamicImports?.forEach((chunkId) =>
+      this.getWebAccessibleFilesForManifestChunk(viteManifest, chunkId).forEach(
+        files.add,
+        files
+      )
+    );
+
+    return files;
   }
 }

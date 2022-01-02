@@ -2,6 +2,7 @@ import MagicString from "magic-string";
 import { OutputBundle, PluginContext } from "rollup";
 import type { Manifest, ResolvedConfig, UserConfig } from "vite";
 
+// Update vite user config with settings necessary for the plugin to work
 export function updateConfigForExtensionSupport(
   config: UserConfig
 ): UserConfig {
@@ -62,42 +63,7 @@ export function transformSelfLocationAssets(
   return null;
 }
 
-export function getWebAccessibleFilesForManifestChunk(
-  viteManifest: Manifest,
-  chunkId: string,
-  includeChunkFile = true
-): Set<string> {
-  const files = new Set<string>();
-
-  const manifestChunk = viteManifest[chunkId];
-  if (!manifestChunk) {
-    return files;
-  }
-
-  if (includeChunkFile) {
-    files.add(manifestChunk.file);
-  }
-
-  manifestChunk.css?.forEach(files.add, files);
-  manifestChunk.assets?.forEach(files.add, files);
-
-  manifestChunk.imports?.forEach((chunkId) =>
-    getWebAccessibleFilesForManifestChunk(viteManifest, chunkId).forEach(
-      files.add,
-      files
-    )
-  );
-
-  manifestChunk.dynamicImports?.forEach((chunkId) =>
-    getWebAccessibleFilesForManifestChunk(viteManifest, chunkId).forEach(
-      files.add,
-      files
-    )
-  );
-
-  return files;
-}
-
+// Override emitFile for vite's manifest plugin so we can use its output to set up our outputted extension manifest
 export function overrideManifestPlugin({
   viteConfig,
   onManifestGenerated,

@@ -42,6 +42,15 @@ export default abstract class DevBuilder<
     );
   }
 
+  protected abstract updateContentSecurityPolicyForHmr(
+    manifest: Manifest
+  ): Manifest;
+
+  protected abstract writeBuildFiles(
+    manifest: Manifest,
+    manifestHtmlFiles: string[]
+  ): Promise<void>;
+
   protected getContentSecurityPolicyWithHmrSupport(
     contentSecurityPolicy: string | undefined
   ): string {
@@ -57,15 +66,6 @@ export default abstract class DevBuilder<
 
     return (contentSecurityPolicy += `; ${cspHmrScriptSrc}`);
   }
-
-  protected abstract updateContentSecurityPolicyForHmr(
-    manifest: Manifest
-  ): Manifest;
-
-  protected abstract writeBuildFiles(
-    manifest: Manifest,
-    manifestHtmlFiles: string[]
-  ): Promise<void>;
 
   protected async writeManifestHtmlFiles(htmlFileNames: string[]) {
     for (const fileName of htmlFileNames) {
