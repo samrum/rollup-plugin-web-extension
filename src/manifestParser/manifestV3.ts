@@ -17,7 +17,7 @@ import {
 } from "../utils/loader";
 import { Manifest as ViteManifest } from "vite";
 import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
-import DevServeBuilderManifestV3 from "../devServeBuilder/DevServeBuilderManifestV3";
+import DevServeBuilderManifestV3 from "../devServeBuilder/devServeBuilderManifestV3";
 
 type Manifest = chrome.runtime.ManifestV3;
 type ManifestParseResult = ParseResult<Manifest>;

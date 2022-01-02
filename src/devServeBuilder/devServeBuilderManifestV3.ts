@@ -1,7 +1,7 @@
 import { ensureDir, writeFile } from "fs-extra";
 import path from "path";
 import { getServiceWorkerLoaderFile } from "../utils/loader";
-import DevServeBuilder from "./DevServeBuilder";
+import DevServeBuilder from "./devServeBuilder";
 
 export default class DevServeBuilderManifestV3 extends DevServeBuilder {
   async writeBuildFiles(

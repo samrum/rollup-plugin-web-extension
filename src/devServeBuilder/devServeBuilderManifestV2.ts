@@ -1,4 +1,4 @@
-import DevServeBuilder from "./DevServeBuilder";
+import DevServeBuilder from "./devServeBuilder";
 
 export default class DevServeBuilderManifestV2 extends DevServeBuilder {
   protected async writeBuildFiles(
