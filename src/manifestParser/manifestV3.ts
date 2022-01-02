@@ -10,20 +10,20 @@ import {
   parseManifestHtmlFile,
   pipe,
   rewriteCssInBundleForManifestChunk,
-  updateContentSecurityPolicyForHmr,
 } from "../utils/manifest";
 import type { OutputBundle } from "rollup";
-import { getServiceWorkerLoaderFile } from "../utils/loader";
-import { Manifest as ViteManifest } from "vite";
 import {
-  getWebAccessibleFilesForManifestChunk,
+  getServiceWorkerLoaderFile,
   getContentScriptLoaderForManifestChunk,
-} from "../utils/vite";
+} from "../utils/loader";
+import { Manifest as ViteManifest } from "vite";
+import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
 import {
   getHmrServerOrigin,
   writeManifestContentScriptFiles,
   writeManifestHtmlFiles,
   writeManifestServiceWorkerFiles,
+  updateContentSecurityPolicyForHmr,
 } from "../utils/devServer";
 
 type Manifest = chrome.runtime.ManifestV3;
@@ -229,7 +229,8 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
 
         const resources = getWebAccessibleFilesForManifestChunk(
           viteManifest,
-          scriptFileName
+          scriptFileName,
+          Boolean(scriptLoaderFile.source)
         );
         if (resources.size) {
           webAccessibleResources.add({

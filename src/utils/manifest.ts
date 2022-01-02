@@ -45,23 +45,6 @@ export function isSingleHtmlFilename(fileName: string): boolean {
   return /[^*]+.html$/.test(fileName);
 }
 
-export function updateContentSecurityPolicyForHmr(
-  contentSecurityPolicy: string | undefined,
-  hmrServerOrigin: string
-): string {
-  const cspHmrScriptSrc = `script-src ${hmrServerOrigin}; object-src 'self'`;
-
-  if (!contentSecurityPolicy) {
-    return cspHmrScriptSrc;
-  }
-
-  if (contentSecurityPolicy.includes("script-src")) {
-    return contentSecurityPolicy.replace(`script-src`, cspHmrScriptSrc);
-  }
-
-  return (contentSecurityPolicy += `; ${cspHmrScriptSrc}`);
-}
-
 export function rewriteCssInBundleForManifestChunk(
   manifestChunk: ManifestChunk,
   outputBundle: OutputBundle

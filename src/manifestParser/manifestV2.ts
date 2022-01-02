@@ -1,5 +1,8 @@
 import { copy, emptyDir, readFileSync, writeFile } from "fs-extra";
-import { getScriptHtmlLoaderFile } from "../utils/loader";
+import {
+  getScriptHtmlLoaderFile,
+  getContentScriptLoaderForManifestChunk,
+} from "../utils/loader";
 import { setVirtualModule } from "../utils/virtualModule";
 import ManifestParser, {
   ManifestParserConfig,
@@ -10,19 +13,16 @@ import {
   pipe,
   isSingleHtmlFilename,
   getOutputFileName,
-  updateContentSecurityPolicyForHmr,
   rewriteCssInBundleForManifestChunk,
 } from "../utils/manifest";
 import type { Manifest as ViteManifest } from "vite";
-import {
-  getWebAccessibleFilesForManifestChunk,
-  getContentScriptLoaderForManifestChunk,
-} from "../utils/vite";
+import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
 import { OutputBundle } from "rollup";
 import {
   getHmrServerOrigin,
   writeManifestContentScriptFiles,
   writeManifestHtmlFiles,
+  updateContentSecurityPolicyForHmr,
 } from "../utils/devServer";
 
 type Manifest = chrome.runtime.ManifestV2;
@@ -190,7 +190,8 @@ export default class ManifestV2 implements ManifestParser<Manifest> {
 
         getWebAccessibleFilesForManifestChunk(
           viteManifest,
-          scriptFileName
+          scriptFileName,
+          Boolean(scriptLoaderFile.source)
         ).forEach(webAccessibleResources.add, webAccessibleResources);
       });
     });

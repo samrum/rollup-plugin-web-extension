@@ -1,7 +1,6 @@
 import MagicString from "magic-string";
 import { OutputBundle, PluginContext } from "rollup";
-import type { Manifest, ManifestChunk, ResolvedConfig, UserConfig } from "vite";
-import { getContentScriptLoaderFile } from "./loader";
+import type { Manifest, ResolvedConfig, UserConfig } from "vite";
 
 export function updateConfigForExtensionSupport(
   config: UserConfig
@@ -65,7 +64,8 @@ export function transformSelfLocationAssets(
 
 export function getWebAccessibleFilesForManifestChunk(
   viteManifest: Manifest,
-  chunkId: string
+  chunkId: string,
+  includeChunkFile = true
 ): Set<string> {
   const files = new Set<string>();
 
@@ -74,7 +74,9 @@ export function getWebAccessibleFilesForManifestChunk(
     return files;
   }
 
-  files.add(manifestChunk.file);
+  if (includeChunkFile) {
+    files.add(manifestChunk.file);
+  }
 
   manifestChunk.css?.forEach(files.add, files);
   manifestChunk.assets?.forEach(files.add, files);
@@ -94,18 +96,6 @@ export function getWebAccessibleFilesForManifestChunk(
   );
 
   return files;
-}
-
-export function getContentScriptLoaderForManifestChunk(
-  manifestChunk: ManifestChunk
-): { fileName: string; source?: string } {
-  if (!manifestChunk.imports?.length && !manifestChunk.dynamicImports?.length) {
-    return {
-      fileName: manifestChunk.file,
-    };
-  }
-
-  return getContentScriptLoaderFile(manifestChunk.src!, manifestChunk.file);
 }
 
 export function overrideManifestPlugin({

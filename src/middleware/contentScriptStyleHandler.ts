@@ -21,7 +21,7 @@ const contentScriptStyleHandler: Connect.NextHandleFunction = (
         !/style\.innerHTML = content/.test(chunk)
       ) {
         console.error(
-          "Content script HMR support disabled -- failed to rewrite vite client"
+          "Content script HMR style support disabled -- failed to rewrite vite client"
         );
 
         res.setHeader("Etag", getEtag(chunk, { weak: true }));

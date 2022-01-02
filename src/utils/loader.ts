@@ -1,3 +1,4 @@
+import { ManifestChunk } from "vite";
 import { getOutputFileName } from "./manifest";
 
 export function getScriptHtmlLoaderFile(name: string, scriptSrcs: string[]) {
@@ -38,4 +39,16 @@ export function getServiceWorkerLoaderFile(serviceWorkerFileName: string) {
     fileName: `serviceWorker.js`,
     source: `import "${importPath}";`,
   };
+}
+
+export function getContentScriptLoaderForManifestChunk(
+  manifestChunk: ManifestChunk
+): { fileName: string; source?: string } {
+  if (!manifestChunk.imports?.length && !manifestChunk.dynamicImports?.length) {
+    return {
+      fileName: manifestChunk.file,
+    };
+  }
+
+  return getContentScriptLoaderFile(manifestChunk.src!, manifestChunk.file);
 }

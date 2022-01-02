@@ -19,7 +19,6 @@ async function bundleGenerate(
       minify: false,
       polyfillModulePreload: false,
       rollupOptions: {
-        input: undefined,
         output: {
           entryFileNames: `assets/[name].js`,
           chunkFileNames: `assets/[name].js`,
