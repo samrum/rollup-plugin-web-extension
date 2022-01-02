@@ -1,4 +1,4 @@
-import { copy, emptyDir, readFileSync, writeFile } from "fs-extra";
+import { readFileSync } from "fs-extra";
 import {
   getScriptHtmlLoaderFile,
   getContentScriptLoaderForManifestChunk,
@@ -18,12 +18,7 @@ import {
 import type { Manifest as ViteManifest } from "vite";
 import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
 import { OutputBundle } from "rollup";
-import {
-  getHmrServerOrigin,
-  writeManifestContentScriptFiles,
-  writeManifestHtmlFiles,
-  updateContentSecurityPolicyForHmr,
-} from "../utils/devServer";
+import DevServeBuilderManifestV2 from "../devServeBuilder/DevServeBuilderManifestV2";
 
 type Manifest = chrome.runtime.ManifestV2;
 type ManifestParseResult = ParseResult<Manifest>;
@@ -118,29 +113,11 @@ export default class ManifestV2 implements ManifestParser<Manifest> {
     manifest: Manifest,
     devServerPort: number
   ): Promise<void> {
-    const hmrServerOrigin = getHmrServerOrigin(this.config, devServerPort);
-    const outDir = this.config.viteConfig.build.outDir;
-
-    await emptyDir(outDir);
-    copy("public", outDir);
-
-    await writeManifestHtmlFiles(
-      this.#getManifestFileNames(manifest),
-      hmrServerOrigin,
-      outDir
-    );
-
-    await writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
-
-    manifest.content_security_policy = updateContentSecurityPolicyForHmr(
-      manifest.content_security_policy,
-      hmrServerOrigin
-    );
-
-    await writeFile(
-      `${outDir}/manifest.json`,
-      JSON.stringify(manifest, null, 2)
-    );
+    await new DevServeBuilderManifestV2(this.config.viteConfig).writeBuild({
+      devServerPort,
+      manifest,
+      manifestHtmlFiles: this.#getManifestFileNames(manifest),
+    });
   }
 
   async parseViteManifest(

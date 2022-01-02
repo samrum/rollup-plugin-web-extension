@@ -1,5 +1,4 @@
 import fs from "fs";
-import { copy, emptyDir, writeFile } from "fs-extra";
 import ManifestParser, {
   ManifestParserConfig,
   ParseResult,
@@ -18,13 +17,7 @@ import {
 } from "../utils/loader";
 import { Manifest as ViteManifest } from "vite";
 import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
-import {
-  getHmrServerOrigin,
-  writeManifestContentScriptFiles,
-  writeManifestHtmlFiles,
-  writeManifestServiceWorkerFiles,
-  updateContentSecurityPolicyForHmr,
-} from "../utils/devServer";
+import DevServeBuilderManifestV3 from "../devServeBuilder/DevServeBuilderManifestV3";
 
 type Manifest = chrome.runtime.ManifestV3;
 type ManifestParseResult = ParseResult<Manifest>;
@@ -116,35 +109,11 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
     manifest: Manifest,
     devServerPort: number
   ): Promise<void> {
-    const hmrServerOrigin = getHmrServerOrigin(this.config, devServerPort);
-
-    const outDir = this.config.viteConfig.build.outDir;
-
-    await emptyDir(outDir);
-    copy("public", outDir);
-
-    await writeManifestHtmlFiles(
-      this.#getManifestFileNames(manifest),
-      hmrServerOrigin,
-      outDir
-    );
-
-    await writeManifestContentScriptFiles(manifest, hmrServerOrigin, outDir);
-
-    await writeManifestServiceWorkerFiles(manifest, hmrServerOrigin, outDir);
-
-    manifest.content_security_policy ??= {};
-
-    manifest.content_security_policy.extension_pages =
-      updateContentSecurityPolicyForHmr(
-        manifest.content_security_policy.extension_pages,
-        hmrServerOrigin
-      );
-
-    await writeFile(
-      `${outDir}/manifest.json`,
-      JSON.stringify(manifest, null, 2)
-    );
+    await new DevServeBuilderManifestV3(this.config.viteConfig).writeBuild({
+      devServerPort,
+      manifest,
+      manifestHtmlFiles: this.#getManifestFileNames(manifest),
+    });
   }
 
   async parseViteManifest(
