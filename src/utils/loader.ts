@@ -1,5 +1,5 @@
 import { ManifestChunk } from "vite";
-import { getOutputFileName } from "./manifest";
+import { getOutputFileName } from "./file";
 
 export function getScriptHtmlLoaderFile(name: string, scriptSrcs: string[]) {
   const scriptsHtml = scriptSrcs

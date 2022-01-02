@@ -1,55 +1,21 @@
-import fs from "fs";
-import ManifestParser, {
-  ManifestParserConfig,
-  ParseResult,
-} from "./manifestParser";
-import {
-  getOutputFileName,
-  isSingleHtmlFilename,
-  parseManifestHtmlFile,
-  pipe,
-  rewriteCssInBundleForManifestChunk,
-} from "../utils/manifest";
-import type { OutputBundle } from "rollup";
-import {
-  getServiceWorkerLoaderFile,
-  getContentScriptLoaderForManifestChunk,
-} from "../utils/loader";
-import { Manifest as ViteManifest } from "vite";
-import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
-import DevServeBuilderManifestV3 from "../devServeBuilder/devServeBuilderManifestV3";
+import { ParseResult } from "./manifestParser";
+import { isSingleHtmlFilename, getOutputFileName } from "../utils/file";
+import type { Manifest as ViteManifest } from "vite";
+import { OutputBundle } from "rollup";
+import ManifestParser from "./manifestParser";
+import DevBuilder from "../devBuilder/devBuilder";
+import { getServiceWorkerLoaderFile } from "../utils/loader";
+import DevBuilderManifestV3 from "../devBuilder/devBuilderManifestV3";
 
 type Manifest = chrome.runtime.ManifestV3;
 type ManifestParseResult = ParseResult<Manifest>;
 
-export default class ManifestV3 implements ManifestParser<Manifest> {
-  constructor(private config: ManifestParserConfig) {}
-
-  async parseManifest(manifest: Manifest): Promise<ManifestParseResult> {
-    return pipe(
-      this,
-      {
-        manifest,
-        inputScripts: [],
-        emitFiles: [],
-      },
-      this.#parseManifestHtmlFiles,
-      this.#parseManifestContentScripts,
-      this.#parseManifestBackgroundServiceWorker
-    );
+export default class ManifestV3 extends ManifestParser<Manifest> {
+  protected createDevBuilder(): DevBuilder<Manifest> {
+    return new DevBuilderManifestV3(this.viteConfig);
   }
 
-  #parseManifestHtmlFiles(result: ManifestParseResult): ManifestParseResult {
-    const htmlFileNames: string[] = this.#getManifestFileNames(result.manifest);
-
-    htmlFileNames.forEach((htmlFileName) =>
-      parseManifestHtmlFile(htmlFileName, result)
-    );
-
-    return result;
-  }
-
-  #getManifestFileNames(manifest: Manifest): string[] {
+  protected getHtmlFileNames(manifest: Manifest): string[] {
     const webAccessibleResourcesHtmlFileNames: string[] = [];
 
     (manifest.web_accessible_resources ?? []).forEach(({ resources }) =>
@@ -65,29 +31,21 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
     ].filter((fileName): fileName is string => typeof fileName === "string");
   }
 
-  #parseManifestContentScripts(
+  protected getParseInputMethods(): ((
     result: ManifestParseResult
-  ): ManifestParseResult {
-    result.manifest.content_scripts?.forEach((script) => {
-      script.js?.forEach((scriptFile) => {
-        const outputFile = getOutputFileName(scriptFile);
-
-        result.inputScripts.push([outputFile, scriptFile]);
-      });
-
-      script.css?.forEach((cssFile) => {
-        result.emitFiles.push({
-          type: "asset",
-          fileName: cssFile,
-          source: fs.readFileSync(cssFile, "utf-8"),
-        });
-      });
-    });
-
-    return result;
+  ) => ManifestParseResult)[] {
+    return [this.parseInputBackgroundServiceWorker];
   }
 
-  #parseManifestBackgroundServiceWorker(
+  protected getParseOutputMethods(): ((
+    result: ManifestParseResult,
+    viteManifest: ViteManifest,
+    outputBundle: OutputBundle
+  ) => Promise<ManifestParseResult>)[] {
+    return [this.parseOutputServiceWorker];
+  }
+
+  protected parseInputBackgroundServiceWorker(
     result: ManifestParseResult
   ): ManifestParseResult {
     if (!result.manifest.background?.service_worker) {
@@ -105,42 +63,51 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
     return result;
   }
 
-  async writeServeBuild(
-    manifest: Manifest,
-    devServerPort: number
-  ): Promise<void> {
-    await new DevServeBuilderManifestV3(this.config.viteConfig).writeBuild({
-      devServerPort,
-      manifest,
-      manifestHtmlFiles: this.#getManifestFileNames(manifest),
-    });
-  }
-
-  async parseViteManifest(
+  protected async parseOutputContentScripts(
+    result: ManifestParseResult,
     viteManifest: ViteManifest,
-    outputManifest: Manifest,
     outputBundle: OutputBundle
   ): Promise<ManifestParseResult> {
-    let result: ManifestParseResult = {
-      inputScripts: [],
-      emitFiles: [],
-      manifest: outputManifest,
-    };
-
-    result = this.#parseBundleServiceWorker(result, viteManifest);
-    result = this.#parseBundleContentScripts(
-      result,
-      viteManifest,
-      outputBundle
+    const webAccessibleResources = new Set(
+      result.manifest.web_accessible_resources ?? []
     );
+
+    result.manifest.content_scripts?.forEach((script) => {
+      script.js?.forEach((scriptFileName, index) => {
+        const parsedContentScript = this.parseOutputContentScript(
+          scriptFileName,
+          result,
+          viteManifest,
+          outputBundle
+        );
+        if (!parsedContentScript) {
+          return;
+        }
+
+        script.js![index] = parsedContentScript.scriptFileName;
+
+        if (parsedContentScript.webAccessibleFiles.size) {
+          webAccessibleResources.add({
+            resources: Array.from(parsedContentScript.webAccessibleFiles),
+            matches: script.matches!,
+          });
+        }
+      });
+    });
+
+    if (webAccessibleResources.size > 0) {
+      result.manifest.web_accessible_resources = Array.from(
+        webAccessibleResources
+      );
+    }
 
     return result;
   }
 
-  #parseBundleServiceWorker(
+  protected async parseOutputServiceWorker(
     result: ManifestParseResult,
     viteManifest: ViteManifest
-  ): ManifestParseResult {
+  ): Promise<ManifestParseResult> {
     const serviceWorkerFileName = result.manifest.background?.service_worker;
 
     if (!serviceWorkerFileName) {
@@ -161,60 +128,6 @@ export default class ManifestV3 implements ManifestParser<Manifest> {
       fileName: serviceWorkerLoader.fileName,
       source: serviceWorkerLoader.source,
     });
-
-    return result;
-  }
-
-  #parseBundleContentScripts(
-    result: ManifestParseResult,
-    viteManifest: ViteManifest,
-    outputBundle: OutputBundle
-  ): ManifestParseResult {
-    const webAccessibleResources = new Set(
-      result.manifest.web_accessible_resources ?? []
-    );
-
-    result.manifest.content_scripts?.forEach((script) => {
-      script.js?.forEach((scriptFileName, index) => {
-        const manifestChunk = viteManifest[scriptFileName];
-        if (!manifestChunk) {
-          return;
-        }
-
-        const scriptLoaderFile =
-          getContentScriptLoaderForManifestChunk(manifestChunk);
-
-        script.js![index] = scriptLoaderFile.fileName;
-
-        if (scriptLoaderFile.source) {
-          result.emitFiles.push({
-            type: "asset",
-            fileName: scriptLoaderFile.fileName,
-            source: scriptLoaderFile.source,
-          });
-        }
-
-        rewriteCssInBundleForManifestChunk(manifestChunk, outputBundle);
-
-        const resources = getWebAccessibleFilesForManifestChunk(
-          viteManifest,
-          scriptFileName,
-          Boolean(scriptLoaderFile.source)
-        );
-        if (resources.size) {
-          webAccessibleResources.add({
-            resources: Array.from(resources),
-            matches: script.matches!,
-          });
-        }
-      });
-    });
-
-    if (webAccessibleResources.size > 0) {
-      result.manifest.web_accessible_resources = Array.from(
-        webAccessibleResources
-      );
-    }
 
     return result;
   }

@@ -104,7 +104,7 @@ export function overrideManifestPlugin({
 }: {
   viteConfig: ResolvedConfig;
   onManifestGenerated: (
-    manifestSource: string,
+    manifest: Manifest,
     pluginContext: PluginContext,
     outputBundle: OutputBundle
   ) => Promise<void>;
@@ -141,6 +141,10 @@ export function overrideManifestPlugin({
       throw new Error("Failed to get vite generated manifest file!");
     }
 
-    await onManifestGenerated(manifestSource, this, args[1]);
+    await onManifestGenerated(
+      JSON.parse(manifestSource) as Manifest,
+      this,
+      args[1]
+    );
   };
 }

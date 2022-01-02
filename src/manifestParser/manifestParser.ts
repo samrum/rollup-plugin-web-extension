@@ -1,22 +1,11 @@
-import type { EmittedFile, OutputBundle } from "rollup";
-import type { Manifest as ViteManifest, ResolvedConfig } from "vite";
-
-export default interface ManifestParser<
-  Manifest extends chrome.runtime.Manifest
-> {
-  // Pull files to emit and files to pass on to vite for processing from input manifest
-  parseManifest(manifest: Manifest): Promise<ParseResult<Manifest>>;
-
-  // Write base files needed for the extension to function, update imports to pull from dev server
-  writeServeBuild(manifest: Manifest, devServerPort: number): Promise<void>;
-
-  // Use vite manifest file to do things like add content script loaders, update extension manifest filenames
-  parseViteManifest(
-    viteManifest: ViteManifest,
-    outputManifest: Manifest,
-    outputBundle: OutputBundle
-  ): Promise<ParseResult<Manifest>>;
-}
+import { readFileSync } from "fs-extra";
+import { ManifestChunk, ResolvedConfig } from "vite";
+import DevBuilder from "../devBuilder/devBuilder";
+import { getOutputFileName } from "../utils/file";
+import type { Manifest as ViteManifest } from "vite";
+import { EmittedFile, OutputBundle } from "rollup";
+import { getWebAccessibleFilesForManifestChunk } from "../utils/vite";
+import { getContentScriptLoaderForManifestChunk } from "../utils/loader";
 
 export interface ParseResult<Manifest extends chrome.runtime.Manifest> {
   inputScripts: [string, string][];
@@ -24,6 +13,183 @@ export interface ParseResult<Manifest extends chrome.runtime.Manifest> {
   manifest: Manifest;
 }
 
-export interface ManifestParserConfig {
-  viteConfig: ResolvedConfig;
+export default abstract class ManifestParser<
+  Manifest extends chrome.runtime.Manifest
+> {
+  constructor(protected viteConfig: ResolvedConfig) {}
+
+  async parseInput(manifest: Manifest): Promise<ParseResult<Manifest>> {
+    const parseResult: ParseResult<Manifest> = {
+      manifest,
+      inputScripts: [],
+      emitFiles: [],
+    };
+
+    return this.pipe(
+      parseResult,
+      this.parseInputHtmlFiles,
+      this.parseInputContentScripts,
+      ...this.getParseInputMethods()
+    );
+  }
+
+  async writeDevBuild(
+    manifest: Manifest,
+    devServerPort: number
+  ): Promise<void> {
+    await this.createDevBuilder().writeBuild({
+      devServerPort,
+      manifest,
+      manifestHtmlFiles: this.getHtmlFileNames(manifest),
+    });
+  }
+
+  async parseOutput(
+    viteManifest: ViteManifest,
+    outputManifest: Manifest,
+    outputBundle: OutputBundle
+  ): Promise<ParseResult<Manifest>> {
+    let result: ParseResult<Manifest> = {
+      inputScripts: [],
+      emitFiles: [],
+      manifest: outputManifest,
+    };
+
+    result = await this.parseOutputContentScripts(
+      result,
+      viteManifest,
+      outputBundle
+    );
+
+    for (const parseMethod of this.getParseOutputMethods()) {
+      result = await parseMethod(result, viteManifest, outputBundle);
+    }
+
+    return result;
+  }
+
+  protected abstract createDevBuilder(): DevBuilder<Manifest>;
+
+  protected abstract getHtmlFileNames(manifest: Manifest): string[];
+
+  protected abstract getParseInputMethods(): ((
+    result: ParseResult<Manifest>
+  ) => ParseResult<Manifest>)[];
+
+  protected abstract getParseOutputMethods(): ((
+    result: ParseResult<Manifest>,
+    viteManifest: ViteManifest,
+    outputBundle: OutputBundle
+  ) => Promise<ParseResult<Manifest>>)[];
+
+  protected abstract parseOutputContentScripts(
+    result: ParseResult<Manifest>,
+    viteManifest: ViteManifest,
+    outputBundle: OutputBundle
+  ): Promise<ParseResult<Manifest>>;
+
+  protected parseInputHtmlFiles(result: ParseResult<Manifest>) {
+    this.getHtmlFileNames(result.manifest).forEach((htmlFileName) =>
+      this.parseInputHtmlFile(htmlFileName, result)
+    );
+
+    return result;
+  }
+
+  protected parseInputContentScripts(
+    result: ParseResult<Manifest>
+  ): ParseResult<Manifest> {
+    result.manifest.content_scripts?.forEach((script) => {
+      script.js?.forEach((scriptFile) => {
+        const outputFile = getOutputFileName(scriptFile);
+
+        result.inputScripts.push([outputFile, scriptFile]);
+      });
+
+      script.css?.forEach((cssFile) => {
+        result.emitFiles.push({
+          type: "asset",
+          fileName: cssFile,
+          source: readFileSync(cssFile, "utf-8"),
+        });
+      });
+    });
+
+    return result;
+  }
+
+  protected parseInputHtmlFile(
+    htmlFileName: string | undefined,
+    result: ParseResult<Manifest>
+  ): ParseResult<Manifest> {
+    if (!htmlFileName) {
+      return result;
+    }
+
+    const outputFile = getOutputFileName(htmlFileName);
+
+    result.inputScripts.push([outputFile, htmlFileName]);
+
+    return result;
+  }
+
+  protected parseOutputContentScript(
+    scriptFileName: string,
+    result: ParseResult<Manifest>,
+    viteManifest: ViteManifest,
+    outputBundle: OutputBundle
+  ): { scriptFileName: string; webAccessibleFiles: Set<string> } | null {
+    const manifestChunk = viteManifest[scriptFileName];
+    if (!manifestChunk) {
+      return null;
+    }
+
+    const scriptLoaderFile =
+      getContentScriptLoaderForManifestChunk(manifestChunk);
+
+    if (scriptLoaderFile.source) {
+      result.emitFiles.push({
+        type: "asset",
+        fileName: scriptLoaderFile.fileName,
+        source: scriptLoaderFile.source,
+      });
+    }
+
+    this.rewriteCssInBundleForManifestChunk(manifestChunk, outputBundle);
+
+    return {
+      scriptFileName: scriptLoaderFile.fileName,
+      webAccessibleFiles: getWebAccessibleFilesForManifestChunk(
+        viteManifest,
+        scriptFileName,
+        Boolean(scriptLoaderFile.source)
+      ),
+    };
+  }
+
+  protected pipe<T>(initialValue: T, ...fns: ((result: T) => T)[]): T {
+    return fns.reduce(
+      (previousValue, fn) => fn.call(this, previousValue),
+      initialValue
+    );
+  }
+
+  protected rewriteCssInBundleForManifestChunk(
+    manifestChunk: ManifestChunk,
+    outputBundle: OutputBundle
+  ) {
+    if (!manifestChunk.css?.length) {
+      return;
+    }
+
+    const outputChunk = outputBundle[manifestChunk.file];
+    if (outputChunk.type !== "chunk") {
+      return;
+    }
+
+    outputChunk.code = outputChunk.code.replace(
+      new RegExp(manifestChunk.file.replace(".js", ".css"), "g"),
+      manifestChunk.css[0]
+    );
+  }
 }

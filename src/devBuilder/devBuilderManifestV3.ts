@@ -1,21 +1,16 @@
 import { ensureDir, writeFile } from "fs-extra";
 import path from "path";
 import { getServiceWorkerLoaderFile } from "../utils/loader";
-import DevServeBuilder from "./devServeBuilder";
+import DevBuilder from "./devBuilder";
 
-export default class DevServeBuilderManifestV3 extends DevServeBuilder {
-  async writeBuildFiles(
-    manifest: chrome.runtime.ManifestV3,
-    manifestHtmlFiles: string[]
-  ): Promise<void> {
-    await this.writeManifestHtmlFiles(manifestHtmlFiles);
-    await this.writeManifestContentScriptFiles(manifest);
+export default class DevBuilderManifestV3 extends DevBuilder<chrome.runtime.ManifestV3> {
+  async writeBuildFiles(manifest: chrome.runtime.ManifestV3): Promise<void> {
     await this.writeManifestServiceWorkerFiles(manifest);
   }
 
   updateContentSecurityPolicyForHmr(
     manifest: chrome.runtime.ManifestV3
-  ): chrome.runtime.Manifest {
+  ): chrome.runtime.ManifestV3 {
     manifest.content_security_policy ??= {};
 
     manifest.content_security_policy.extension_pages =

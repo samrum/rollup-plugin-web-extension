@@ -1,5 +1,5 @@
 import type { EmittedFile } from "rollup";
-import type { Manifest, Plugin, ResolvedConfig } from "vite";
+import type { Plugin, ResolvedConfig } from "vite";
 import type { RollupWebExtensionOptions } from "../types";
 import { addInputScriptsToOptionsInput } from "./utils/rollup";
 import ManifestParser from "./manifestParser/manifestParser";
@@ -37,14 +37,10 @@ export default function webExtension(
 
       overrideManifestPlugin({
         viteConfig,
-        onManifestGenerated: async (
-          manifestSource,
-          pluginContext,
-          outputBundle
-        ) => {
-          const { emitFiles, manifest } =
-            await manifestParser!.parseViteManifest(
-              JSON.parse(manifestSource) as Manifest,
+        onManifestGenerated: async (manifest, pluginContext, outputBundle) => {
+          const { emitFiles, manifest: extensionManifest } =
+            await manifestParser!.parseOutput(
+              manifest,
               inputManifest,
               outputBundle
             );
@@ -54,7 +50,7 @@ export default function webExtension(
           pluginContext.emitFile({
             type: "asset",
             fileName: "manifest.json",
-            source: JSON.stringify(manifest, null, 2),
+            source: JSON.stringify(extensionManifest, null, 2),
           });
         },
       });
@@ -64,7 +60,7 @@ export default function webExtension(
       server.middlewares.use(contentScriptStyleHandler);
 
       server.httpServer!.once("listening", () => {
-        manifestParser!.writeServeBuild(
+        manifestParser!.writeDevBuild(
           inputManifest,
           server.config.server.port!
         );
@@ -74,13 +70,11 @@ export default function webExtension(
     async options(options) {
       manifestParser = ManifestParserFactory.getParser(
         inputManifest.manifest_version,
-        {
-          viteConfig,
-        }
+        viteConfig
       );
 
       const { inputScripts, emitFiles, manifest } =
-        await manifestParser.parseManifest(inputManifest);
+        await manifestParser.parseInput(inputManifest);
 
       options.input = addInputScriptsToOptionsInput(
         inputScripts,

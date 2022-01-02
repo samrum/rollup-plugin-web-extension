@@ -2,10 +2,12 @@ import { copy, emptyDir, ensureDir, readFile, writeFile } from "fs-extra";
 import path from "path";
 import { ResolvedConfig } from "vite";
 import { getContentScriptLoaderFile } from "../utils/loader";
-import { getOutputFileName } from "../utils/manifest";
+import { getOutputFileName } from "../utils/file";
 import { getVirtualModule } from "../utils/virtualModule";
 
-export default abstract class DevServeBuilder {
+export default abstract class DevBuilder<
+  Manifest extends chrome.runtime.Manifest
+> {
   protected hmrServerOrigin: string = "";
   protected outDir: string;
 
@@ -13,28 +15,22 @@ export default abstract class DevServeBuilder {
     this.outDir = this.viteConfig.build.outDir;
   }
 
-  protected abstract writeBuildFiles(
-    manifest: chrome.runtime.Manifest,
-    manifestHtmlFiles: string[]
-  ): Promise<void>;
-
-  protected abstract updateContentSecurityPolicyForHmr(
-    manifest: chrome.runtime.Manifest
-  ): chrome.runtime.Manifest;
-
   async writeBuild({
     devServerPort,
     manifest,
     manifestHtmlFiles,
   }: {
     devServerPort: number;
-    manifest: chrome.runtime.Manifest;
+    manifest: Manifest;
     manifestHtmlFiles: string[];
   }) {
     this.hmrServerOrigin = this.getHmrServerOrigin(devServerPort);
 
     await emptyDir(this.outDir);
     copy("public", this.outDir);
+
+    await this.writeManifestHtmlFiles(manifestHtmlFiles);
+    await this.writeManifestContentScriptFiles(manifest);
 
     await this.writeBuildFiles(manifest, manifestHtmlFiles);
 
@@ -61,6 +57,15 @@ export default abstract class DevServeBuilder {
 
     return (contentSecurityPolicy += `; ${cspHmrScriptSrc}`);
   }
+
+  protected abstract updateContentSecurityPolicyForHmr(
+    manifest: Manifest
+  ): Manifest;
+
+  protected abstract writeBuildFiles(
+    manifest: Manifest,
+    manifestHtmlFiles: string[]
+  ): Promise<void>;
 
   protected async writeManifestHtmlFiles(htmlFileNames: string[]) {
     for (const fileName of htmlFileNames) {
@@ -90,9 +95,7 @@ export default abstract class DevServeBuilder {
     }
   }
 
-  protected async writeManifestContentScriptFiles(
-    manifest: chrome.runtime.Manifest
-  ) {
+  protected async writeManifestContentScriptFiles(manifest: Manifest) {
     if (!manifest.content_scripts) {
       return;
     }
