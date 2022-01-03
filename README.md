@@ -18,7 +18,7 @@ A vite plugin to help build cross browser platform, ES module based web extensio
 
 ## Quick Start
 
-Build an [example extension](https://github.com/samrum/vite-web-extension) using this plugin:
+Build an [example extension](https://github.com/samrum/vite-web-extension) that uses this plugin:
 
 <details>
   <summary>With npm</summary>
@@ -93,7 +93,7 @@ Build an [example extension](https://github.com/samrum/vite-web-extension) using
 
 </details>
 
-## Content Script Notes
+## Content Scripts
 
 - For HMR style support within shadow DOMs, use the `addStyleTarget` function to add the shadowRoot of your element as a style target:
 
@@ -105,7 +105,7 @@ Build an [example extension](https://github.com/samrum/vite-web-extension) using
   }
   ```
 
-- The `import.meta.CURRENT_CONTENT_SCRIPT_CSS_URL` constant will be replaced with the first generated CSS file associated with the content script chunk at build time.
+- For builds, use the `import.meta.CURRENT_CONTENT_SCRIPT_CSS_URL` constant to reference the first generated CSS file associated with the current content script chunk.
 
 ## Browser Support
 
