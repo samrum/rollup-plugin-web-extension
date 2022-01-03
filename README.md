@@ -1,3 +1,8 @@
+# Deprecated
+This plugin has been deprecated in favor of [@samrum/vite-plugin-web-extension](https://github.com/samrum/vite-plugin-web-extension).
+
+The Vite version has fixed a lot of bugs and wonkiness that this plugin had. It also gains a ton of Vite features like HMR, built in Typescript support, asset handling, etc.
+
 # rollup-plugin-web-extension
 
 A rollup plugin to help build cross browser platform, ES module based web extensions.
