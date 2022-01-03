@@ -1,12 +1,12 @@
 {
   "name": "@samrum/vite-plugin-web-extension",
   "version": "0.1.0",
-  "description": "A rollup plugin for generating cross browser platform, ES module based web extensions",
+  "description": "A vite plugin for generating cross browser platform, ES module based web extensions",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "types/index.d.ts",
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=12.0.0"
   },
   "files": [
     "dist",
@@ -31,14 +31,14 @@
     "url": "git+https://github.com/samrum/vite-plugin-web-extension.git"
   },
   "keywords": [
-    "rollup",
-    "chrome",
+    "vite",
     "web",
+    "extension",
     "browser",
     "chrome",
     "firefox",
     "edge",
-    "extension"
+    "manifest"
   ],
   "author": "Ruben Medina",
   "license": "MIT",
@@ -64,7 +64,6 @@
     "vite": "^2.6.14"
   },
   "peerDependencies": {
-    "rollup": "^2.55.1",
     "vite": "^2.6.14"
   },
   "lint-staged": {

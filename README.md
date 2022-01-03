@@ -1,6 +1,6 @@
 # vite-plugin-web-extension
 
-A vite plugin to help build cross browser platform, ES module based web extensions.
+A vite plugin for generating cross browser platform, ES module based web extensions.
 
 ## Features
 
