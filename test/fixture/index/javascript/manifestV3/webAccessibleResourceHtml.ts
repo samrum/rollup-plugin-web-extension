@@ -1,4 +1,3 @@
-import { getExpectedHtml, getExpectedLog } from "../../../fixtureUtils";
 import { getExpectedCode } from "../shared/webAccessibleResourceHtml";
 
 const resourceDir =

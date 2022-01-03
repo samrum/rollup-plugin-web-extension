@@ -41,6 +41,7 @@ const expectedManifest = {
         "assets/log.js",
       ],
       matches: ["https://*/*", "http://*/*"],
+      use_dynamic_url: true,
     },
     {
       resources: [
@@ -49,6 +50,7 @@ const expectedManifest = {
         "assets/log.js",
       ],
       matches: ["https://*/*", "http://*/*"],
+      use_dynamic_url: true,
     },
   ],
 };

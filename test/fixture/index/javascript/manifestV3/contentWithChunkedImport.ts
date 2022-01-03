@@ -36,10 +36,12 @@ const expectedManifest = {
     {
       resources: [`assets/${resourceDir}/content1.js`, "assets/log.js"],
       matches: ["https://*/*", "http://*/*"],
+      use_dynamic_url: true,
     },
     {
       resources: [`assets/${resourceDir}/content2.js`, "assets/log.js"],
       matches: ["https://*/*", "http://*/*"],
+      use_dynamic_url: true,
     },
   ],
 };
