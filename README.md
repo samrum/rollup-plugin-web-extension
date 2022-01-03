@@ -4,7 +4,7 @@ A vite plugin to help build cross browser platform, ES module based web extensio
 
 ## Features
 
-- Manifest V2 & Manifest V3 Support
+- Manifest V2 & V3 Support
 - Completely ES module based extensions
   - Including content scripts!
 - Vite based html and static asset handling
