@@ -30,7 +30,7 @@ export default function webExtension(
     enforce: "post", // required to revert vite asset self.location transform to import.meta.url
 
     config(config) {
-      return updateConfigForExtensionSupport(config);
+      return updateConfigForExtensionSupport(config, pluginOptions.manifest);
     },
 
     configResolved(resolvedConfig) {

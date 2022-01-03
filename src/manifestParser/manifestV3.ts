@@ -90,6 +90,8 @@ export default class ManifestV3 extends ManifestParser<Manifest> {
           webAccessibleResources.add({
             resources: Array.from(parsedContentScript.webAccessibleFiles),
             matches: script.matches!,
+            // @ts-ignore - use_dynamic_url is a newly supported option
+            use_dynamic_url: true,
           });
         }
       });

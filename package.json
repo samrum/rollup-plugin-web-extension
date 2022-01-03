@@ -1,6 +1,6 @@
 {
   "name": "@samrum/vite-plugin-web-extension",
-  "version": "0.9.3",
+  "version": "0.1.0",
   "description": "A rollup plugin for generating cross browser platform, ES module based web extensions",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -71,7 +71,7 @@
     "*.{js,ts,css,md}": "prettier --write"
   },
   "dependencies": {
-    "@types/chrome": "^0.0.158",
+    "@types/chrome": "^0.0.174",
     "@types/etag": "^1.8.1",
     "etag": "^1.8.1",
     "fs-extra": "^10.0.0",

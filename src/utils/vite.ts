@@ -4,11 +4,18 @@ import type { Manifest, ResolvedConfig, UserConfig } from "vite";
 
 // Update vite user config with settings necessary for the plugin to work
 export function updateConfigForExtensionSupport(
-  config: UserConfig
+  config: UserConfig,
+  manifest: chrome.runtime.Manifest
 ): UserConfig {
   config.build ??= {};
   config.build.manifest = true;
-  config.build.target = ["chrome64", "firefox89"]; // minimum browsers with import.meta.url and content script dynamic import
+
+  switch (manifest.manifest_version) {
+    case 2:
+      config.build.target = ["chrome64", "firefox89"]; // minimum browsers with import.meta.url and content script dynamic import
+    case 3:
+      config.build.target = ["chrome91"];
+  }
 
   config.build.rollupOptions ??= {};
   config.build.rollupOptions.input ??= undefined;
